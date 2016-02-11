@@ -1,0 +1,1 @@
+<li><a href="<?=$site.$li_url ?>"><strong><?=$li_label ?></strong></a>

@@ -1,0 +1,124 @@
+/* reset css styles individually instead of universal selector. */
+/* based on http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/ */
+body{
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color:#000;
+	font-size: 13px; 
+}
+
+#center {
+    position:relative;
+    text-align: center;
+    margin: 0 auto;
+    padding: 0;
+    width: 960px;
+}
+
+#wrapper {
+    margin: 0 auto;
+    width: 960px;
+    text-align: left;
+}
+
+#content {
+    width: 960px;
+    margin: 0 auto;
+    padding: 0px;
+    overflow: hidden;
+}
+    
+#login {
+	width:100%;
+	height:360px;
+	margin-top:125px;
+	background:#fff url(../images/login.jpg);
+}
+
+
+
+.UILinkButton {
+float:left;
+height:22px;
+padding:0;
+position:relative;
+z-index:1;
+}
+
+.ff3 .UILinkButton {
+padding-top:1px;
+}
+
+.UILinkButton .UILinkButton_A {
+background:transparent url(../images/Button_Blue.png) no-repeat scroll left top;
+border:0 none;
+color:white;
+cursor:pointer;
+float:left;
+font-size:11px;
+font-weight:bold;
+height:22px;
+margin:0;
+padding:3px 10px 3px 12px;
+position:relative;
+}
+
+.ff3 .UILinkButton .UILinkButton_A {
+padding:2px 6px 4px 8px;
+}
+
+
+.UILinkButton .UILinkButton_RW {
+float:left;
+height:22px;
+overflow:hidden;
+position:relative;
+width:3px;
+}
+
+
+
+.UILinkButton .UILinkButton_R {
+background:transparent url(../images/Button_Blue.png) no-repeat scroll -248px 0;
+height:27px;
+position:absolute;
+right:0;
+top:0;
+width:3px;
+}
+
+
+td.label {
+color:#666666;
+font-weight:bold;
+padding-right:15px;
+text-align:right;
+width:150px;
+}
+
+td.label-login {
+color:#000000;
+font-weight:bold;
+padding-right:5px;
+text-align:right;
+width:150px;
+}
+
+.field_container {
+display:inline-block;
+padding:1px;
+position:relative;
+width:auto;
+}
+
+.inputtext, .inputpassword { 
+border:1px solid #BDC7D8;
+font-family:"lucida grande",tahoma,verdana,arial,sans-serif;
+font-size:12px;
+padding:3px;
+}
+
+.inputtext, .inputpassword {
+border-color:#96A6C5;
+margin-top:2px;
+width:206px;
+}

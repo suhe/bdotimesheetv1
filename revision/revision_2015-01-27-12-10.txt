@@ -1,0 +1,19 @@
+Berikut hal – hal yang perlu ditambahkan kepada Applikasi Timesheet karyawan :
+1.  Klasifikasi pada Timesheet :
+a.  Ijin Terlambat (lebih dari 1 jam)
+   @ Solved =>  
+   HRD24 Ijin Terlambat Lebih dari 1 Jam
+  
+@b. Self Study (Hrs dijelaskan nama perusahaannya (PT))
+   Selft Study insert client name description
+  
+@c.  Ijin yang setara cuti
+Solved => Insert Job in Table Job dbdev
+          Update/Register job id Job in project_job
+
+@2.  Menambahkan/menyisipkan kolom Self Study pada report timesheet 
+ => solved 
+     - Report Employee By Week 
+
+=> 3.  Klasifikasi Job Code HRD harus disembunyikan/di locked agar memudahkan dalam pengisian TS
+Ini Maksudnya gmana ? 
