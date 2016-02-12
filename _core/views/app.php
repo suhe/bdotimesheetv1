@@ -4,7 +4,7 @@
 <div class="grid_12">
 	
 	<h2 id="page-spacer"></h2>
-	<h4 style="font-weight: bold;font-size:14px;border-bottom:1px solid #CCC;padding:5px">Please choice Your needs :</h4>
+	<h4 style="font-weight: bold;font-size:14px;border-bottom:1px solid #CCC;padding:5px">Please choose your needs:</h4>
 	<table align=center style="width:100%">
 		<tr>
 			<td style="width:15%;text-align:center"><a href="<?=base_url()?>admin/app_choice/timesheet"><img src="<?=base_url()?>images/timesheet.png" /></a></td>
