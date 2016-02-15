@@ -236,7 +236,11 @@ class Report extends MY_Controller {
 		}
 		return $business_days;
 	}
-	function reportTimesheetCompletionSummary() {
+	
+	/** 
+	 * Completion All Summary Timesheet
+	 */
+	public function reportTimesheetCompletionSummary() {
 		$this->getMenu ();
 		$this->data ['form'] ['date_from'] = $this->input->post ( 'date_from' );
 		$this->data ['form'] ['date_to'] = $this->input->post ( 'date_to' );
@@ -294,62 +298,62 @@ class Report extends MY_Controller {
 					$class = ($i % 2 == 0) ? $class = 'class="odd"' : ' ';
 					
 					$this->data ['row'] .= "     		
-      		   <tr $class >
-      				<td>$i</td>
-      				<td>$v[employeeid]</td>
-      				<td>$v[employee]</td>
-      				<td>$v[approval]</td>
-                    <td class=currency>" . Number ( $v ['tday'] ) . "</td>
-                    
-					<td class=currency>" . Number ( $v ['work_app'] ) . "</td> 
-					<td class=currency>" . Number ( $v ['ot_app'] ) . "</td>
-      				<td class=currency>" . Number ( $v ['hour_app'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['day_app'] ) . "</td>
-                    
-      				<td class=currency>" . Number ( $v ['work_wait'] ) . "</td>
-      				<td class=currency>" . Number ( $v ['ot_wait'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['hour_wait'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['day_wait'] ) . "</td>
-                    
-      				<td class=currency>" . Number ( $v ['work_re'] ) . "</td>
-      				<td class=currency>" . Number ( $v ['ot_re'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['hour_re'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['day_re'] ) . "</td>
-                    
-      				<td class=currency>" . Number ( $v ['work_null'] ) . "</td>
-      				<td class=currency>" . Number ( $v ['ot_null'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['hour_null'] ) . "</td>
-                    <td class=currency>" . Number ( $v ['day_null'] ) . "</td>
-              </tr>";
+	      		   <tr $class >
+	      				<td>$i</td>
+	      				<td>$v[employeeid]</td>
+	      				<td>$v[employee]</td>
+	      				<td>$v[approval]</td>
+	                    <td class=currency>" . Number ( $v ['tday'] ) . "</td>
+	                    
+						<td class=currency>" . Number ( $v ['work_app'] ) . "</td> 
+						<td class=currency>" . Number ( $v ['ot_app'] ) . "</td>
+	      				<td class=currency>" . Number ( $v ['hour_app'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['day_app'] ) . "</td>
+	                    
+	      				<td class=currency>" . Number ( $v ['work_wait'] ) . "</td>
+	      				<td class=currency>" . Number ( $v ['ot_wait'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['hour_wait'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['day_wait'] ) . "</td>
+	                    
+	      				<td class=currency>" . Number ( $v ['work_re'] ) . "</td>
+	      				<td class=currency>" . Number ( $v ['ot_re'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['hour_re'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['day_re'] ) . "</td>
+	                    
+	      				<td class=currency>" . Number ( $v ['work_null'] ) . "</td>
+	      				<td class=currency>" . Number ( $v ['ot_null'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['hour_null'] ) . "</td>
+	                    <td class=currency>" . Number ( $v ['day_null'] ) . "</td>
+	              </tr>";
 					$i ++;
 				}
 				
 				$this->data ['row'] .= "     		
-      		<tr $class >
-      				<td></td>
-      				<td colspan=3 class='currency'><b>Total</b>
-                    <td class=currency><b>" . Number ( $total_day ) . "</b></td>
-                    
-      				<td class=currency><b>" . Number ( $total_work_app ) . "</b></td>
-      				<td class=currency><b>" . Number ( $total_ot_app ) . "</b></td>
-      				<td class=currency><b>" . Number ( $total_hour_app ) . "</b></td>
-                    <td class=currency><b>" . Number ( $total_day_app ) . "</b></td>
-                    
-      				<td class=currency><b>" . Number ( $total_work_wait ) . "</b></td>
-      				<td class=currency><b>" . Number ( $total_ot_wait ) . "</b></td>
-					<td class=currency><b>" . Number ( $total_hour_wait ) . "</b></td>
-                    <td class=currency><b>" . Number ( $total_day_wait ) . "</b></td>
-                    
-      				<td class=currency><b>" . Number ( $total_work_re ) . "</b></td>
-      				<td class=currency><b>" . Number ( $total_ot_re ) . "</b></td>
-                    <td class=currency><b>" . Number ( $total_hour_re ) . "</b></td>
-                    <td class=currency><b>" . Number ( $total_day_re ) . "</b></td>
-                    
-      				<td class=currency><b>" . Number ( $total_work_null ) . "</b></td>
-      				<td class=currency><b>" . Number ( $total_ot_null ) . "</b></td>
-                    <td class=currency><b>" . Number ( $total_hour_null ) . "</b></td>
-                    <td class=currency><b>" . Number ( $total_day_null ) . "</b></td>
-      		</tr>";
+		      		<tr $class >
+		      				<td></td>
+		      				<td colspan=3 class='currency'><b>Total</b>
+		                    <td class=currency><b>" . Number ( $total_day ) . "</b></td>
+		                    
+		      				<td class=currency><b>" . Number ( $total_work_app ) . "</b></td>
+		      				<td class=currency><b>" . Number ( $total_ot_app ) . "</b></td>
+		      				<td class=currency><b>" . Number ( $total_hour_app ) . "</b></td>
+		                    <td class=currency><b>" . Number ( $total_day_app ) . "</b></td>
+		                    
+		      				<td class=currency><b>" . Number ( $total_work_wait ) . "</b></td>
+		      				<td class=currency><b>" . Number ( $total_ot_wait ) . "</b></td>
+							<td class=currency><b>" . Number ( $total_hour_wait ) . "</b></td>
+		                    <td class=currency><b>" . Number ( $total_day_wait ) . "</b></td>
+		                    
+		      				<td class=currency><b>" . Number ( $total_work_re ) . "</b></td>
+		      				<td class=currency><b>" . Number ( $total_ot_re ) . "</b></td>
+		                    <td class=currency><b>" . Number ( $total_hour_re ) . "</b></td>
+		                    <td class=currency><b>" . Number ( $total_day_re ) . "</b></td>
+		                    
+		      				<td class=currency><b>" . Number ( $total_work_null ) . "</b></td>
+		      				<td class=currency><b>" . Number ( $total_ot_null ) . "</b></td>
+		                    <td class=currency><b>" . Number ( $total_hour_null ) . "</b></td>
+		                    <td class=currency><b>" . Number ( $total_day_null ) . "</b></td>
+		      		</tr>";
 			}
 		} else {
 			$this->data ['table'] = array ();

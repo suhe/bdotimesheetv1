@@ -267,15 +267,13 @@ class reportModel extends CI_Model {
 				from employee ee
 				inner join sys_user suu on suu.employee_id = ee.employee_id
 				inner join employee a on a.employee_id = ee.approval_id
-				where suu.user_active=1
-				and ee.department_id<>10
-				and ee.department_id<>777
+				where suu.user_active = 1
+				and ee.department_id <> 10
+				and ee.department_id <> 777
 				group by ee.employee_id) result
-				
 				group by result.employee_id
-				order by result.employee ASC
-				
-				";
+				order by result.employee ASC	
+			";
 		return $this->rst2Array ( $sql );
 	}
 	
