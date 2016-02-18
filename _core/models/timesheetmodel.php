@@ -901,6 +901,23 @@ class timesheetModel extends CI_Model {
 			//order by drequest desc";
 		return $this->rst2Array($sql);
 	}
+	
+	//  getProject
+	/*-------------------------------------------------------------------------------------*/
+	public  function getAllowance($filter=null, $limit=100, $offset=0) {
+		$sql = "select * from allowances a  
+		";
+		return $limit ? $this->rst2Array($sql) : $this->rst2Array($sql, 11);
+	}
+	
+	//  getAllowanceDetail
+	/*-------------------------------------------------------------------------------------*/
+	public  function getAllowanceDetail($id) {
+		$sql = "
+			select * from allowances
+			where id = ".$id;
+		return $this->rst2Array($sql, 10);
+	}
 }
 
 /* Info of Approval ID

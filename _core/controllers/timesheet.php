@@ -517,69 +517,41 @@ class Timesheet extends MY_Controller{
 	
 		$this->load->view('timesheet_approvedTimesheet',$this->data);  
 	} // END TIMESHEET
-    
-    
-    function vacationrequests($req=''){ 
-        $user= $this->session->userdata('employee_id');
-        $dep = $this->session->userdata('department_id');
-        $acl = $this->session->userdata('aclname');
-        $this->getMenu();
-        $this->session->set_userdata('back_link','/timesheet/vacationrequests/'.$req);
-        if($req=='request')
-            $records = $this->vacationModel->getReqVacationList($dep,$acl);
-        elseif($req=='approval')
-            $records = $this->vacationModel->getAppVacationList($dep);    
-        else
-            $records = $this->vacationModel->getVacationList($user);     
-		$this->data['records'] = $records ;
-        $this->data['balanced'] = $this->vacationModel->getUserBalanced($user);
-        $this->data['req'] = $req;
-        $count = COUNT($this->vacationModel->getReqVacationList($dep,$acl));
-		$this->data['req_count'] = $count > 0 ? '<b style="color:blue">('.$count.')</b>': ''; 
-        $this->load->view('vacationrequests',$this->data);
-    }
-    
-    function vacation_view($ID,$day,$month,$year){
-        $this->getMenu();
-        $this->data['back_link'] = site_url().$this->session->userdata('back_link');
-        $Date = $year.'-'.$month.'-'.$day;
-        $this->data['value']   = $this->vacationModel->getVacationSummary($ID,$Date);
-        switch($this->session->userdata('aclname')):
-            case 'Auditor In Charge' : $acl = $this->data['value']['aic_approval'];break;
-            case 'Manager In Charge' : $acl = $this->data['value']['mic_approval'];break;
-            case 'Partner'           : $acl = $this->data['value']['pic_approval'];break;
-            case 'Group Coordinator' : $acl = $this->data['value']['pic_approval'];break;
-        endswitch;
-        $this->data['acl'] = $acl;
-        $this->data['records'] = $this->vacationModel->getVacationDetails($ID,$Date);
-        $this->load->view('vacation_view',$this->data);
-    }
-    
-    function approvalVacation($user,$day,$month,$year,$APP=''){ 
-        $date = $year.'-'.$month.'-'.$day;    
-        $this->vacationModel->getAppVacation($user,$date);
-        if ($APP)
-            redirect('timesheet/vacationrequests/'.$APP,301);
-        else    
-            redirect($this->input->server('HTTP_REFERER'),301);
-    }
-    
-    function cancelVacation($user,$day,$month,$year,$APP=''){   
-        $date = $year.'-'.$month.'-'.$day;    
-        $this->vacationModel->getCancelVacation($user,$date);
-        if ($APP)
-            redirect('timesheet/vacationrequests/'.$APP,301);
-        else    
-            redirect($this->input->server('HTTP_REFERER'),301);
-    }
-    
-    /*-------------------------------------------------------------------------------------*/
-	//  Vacation Add
+	
+	
 	/*-------------------------------------------------------------------------------------*/
-	function add_vacationrequests($id=0,$msg='') 	{
-		$this->load->model('projectModel');
-        $this->getMenu() ;
-		$this->data['form']	= $this->projectModel->getProjectDetail($id);
+	//  Allowences
+	/*-------------------------------------------------------------------------------------*/
+	public function allowance($pg=1, $limit=0) {
+		$this->getMenu();
+		$form = array();
+		$data = array('client_name','project_no','project');
+		if($this->input->post('client_name')) $form['client_name'] = $this->input->post('client_name');
+		if($this->input->post('project_no'))$form['project_no']  = $this->input->post('project_no');
+		if($this->input->post('project')) $form['project']   	 = $this->input->post('project');
+			
+		$this->session->set_userdata($form);
+		if($this->session->userdata('client_name')) $form['client_name'] = $this->session->userdata('client_name');
+		if($this->session->userdata('project_no')) 	$form['project_no']	= $this->session->userdata('project_no');
+		if($this->session->userdata('project')) 	$form['project']   	= $this->session->userdata('project');
+		
+		if($limit) {
+			$this->session->set_userdata('rpp', $limit);
+			$this->rpp = $limit;
+		}
+		$limit				 	= $limit ? $limit : $this->rpp;
+		$totalRow			 	= count($this->timesheetModel->getAllowance($form));
+		$this->data['pg']	 	= $this->setPaging($totalRow, $pg, $limit);
+		$this->data['table']	= $this->timesheetModel->getAllowance($form, $limit, $this->data['pg']['o']);
+		$this->load->view('timesheet_allowance',$this->data);
+	}
+	
+	/*-------------------------------------------------------------------------------------*/
+	//  Allowance Form
+	/*-------------------------------------------------------------------------------------*/
+	public function allowance_form($id = 0, $msg='') 	{
+		$this->getMenu() ;
+		$this->data['form']	= $this->timesheetModel->getAllowanceDetail($id);
 		if ( count($this->data['form'])	== 0 ) {
 			$this->data['form']['message']					= '';
 			$this->data['form']['client_id']					= 0;
@@ -601,124 +573,25 @@ class Timesheet extends MY_Controller{
 			$this->data['form']['budget_cost']				= '';
 			$this->data['form']['cost']						= '';
 			$this->data['form']['project_approval'] 		= '';
-			$this->data['form']['location'] 					= '0';
-			$this->data['form']['createuser']						= '';
-			$this->data['form']['createdate']						= '';
-			$this->data['form']['creator']						= '';
-
+			$this->data['form']['location'] 			    = '0';
+			$this->data['form']['createuser']			    = '';
+			$this->data['form']['createdate']				= '';
+			$this->data['form']['creator']					= '';
+			$this->data['form']['project_note']				= '';
 		}
+		
+		
 		$this->data['form']['message']=$msg;
-		$this->data['back']		= $this->data['site'] .'/project';
-		$this->data['approve']	= $this->data['site'] .'/project/request/'. $id;
-		$this->data['cclient'] 	= "";
-		//$this->data['client'] 	= $this->projectModel->getClientOption();
-		$this->data['jobtype'] 	= $this->projectModel->getJobType();
-
-		$aTeam = $this->projectModel->getProjectTeamStructure($id);
-		
-		$team  = "";
-		$x = 0;
-		for ($i = 0; $i < count( $aTeam ) ; $i++) {
-			$level = '';
-			$x ++;
-			
-			if ($aTeam[$i]['lookup_code'] ==='01')	$level = 'PIC';
-			if ($aTeam[$i]['lookup_code'] ==='02')	$level = 'GC';
-			if ($aTeam[$i]['lookup_code'] ==='03')	$level = 'MIC';
-			if ($aTeam[$i]['lookup_code'] ==='041')$level = 'AIC';
-			if ($aTeam[$i]['lookup_code'] > '041')	$level = 'ASS';
-			
-			$team .= "	<input type=hidden name=teamid[] value=".$aTeam[$i]['teamid'].">
-							<input type=hidden name=project_title[] value='".$aTeam[$i]['lookup_code']."'>
-							<tr>
-							<td>".$x."
-							<td>".$aTeam[$i]['lookup_label']. " ( " .$aTeam[$i]['tipe'] ." )
-					*Required.
-					<td>";
-
-			if ($aTeam[$i]['lookup_code'] === '042')	{
-					$team .= "";
-					$aAssistant = $this->projectModel->getAssistantList($id);
-
-		      for ($ii = 0; $ii < count( $aAssistant ) ; $ii++) {
-		        $team .= $aAssistant[$ii]['employeefirstname'] . " " . $aAssistant[$ii]['employeemiddlename']." " . $aAssistant[$ii]['employeelastname'] ."<br>";
-		      }
-  		} else {
-					//$team .= $this->htmlEmployeeList('employee_id[]',$aTeam[$i]['employee_id'],$level) ;  		  
-  		}
-
-
-		}
-		$this->data['team'] 			= $team;
-		$this->data['header_team'] = $aTeam;
-		
-		$aoTeam = $this->projectModel->getProjectTeamStructureOther($id);
-		$oteam = "";
-		$y = 0;
-		
-		for ($i = 0; $i < count( $aoTeam ) ; $i++) {
-      $checked = "";
-      if 	($aoTeam[$i]['project_title']===$aoTeam[$i]['lookup_code']){
-        $checked = " checked ";
-      }
-
-			if ($y ===0 ){
-  			$oteam .= "
-  				<input type=hidden name=teamotherid[] value=".$aoTeam[$i]['teamid'].">
-  				<tr>
-  				<td>6
-  				<td>Special Assignment
-  				<td><input type=checkbox $checked name=project_title_other[] value='".$aoTeam[$i]['lookup_code']."'>".$aoTeam[$i]['lookup_label']. " 
-  				";
-			} else {
-			  $oteam .= "
-				<input type=hidden name=teamotherid[] value=".$aoTeam[$i]['teamid'].">
-				<tr>
-				<td colspan=2>
-				<td><input type=checkbox $checked name=project_title_other[] value='".$aoTeam[$i]['lookup_code']."'>".$aoTeam[$i]['lookup_label']. " 
-			";
-			}
-			$y++;
-		}
-				$this->data['oteam'] 			= $oteam;
-				
-		$this->data['table_job'] 	= $this->projectModel->getProjectJob($id);
-		$this->data['table'] 		= $this->projectModel->getProjectAuditor($id);
-		$this->data['budgetTotal'] = $this->projectModel->getBugetTotal($id);
-		$this->data['budgetOther'] = $this->projectModel->getBugetOther($id);
-		$this->load->view('vacation_form',$this->data);
-	} // END of Vacation
+		$this->data['back']		 = $this->data['site'] .'/project';
+		$this->data['approve']	 = $this->data['site'] .'/project/request/'.$id;
+		$this->data['cclient'] 	 = "";
+		//$this->data['client'] 	 = $this->projectModel->getClientOption();
+		//$this->data['jobtype'] 	 = $this->projectModel->getJobType();
+		//$this->data['table'] 		= $this->projectModel->getProjectAuditor($id);
+		//$this->data['budgetTotal']  = $this->projectModel->getBugetTotal($id);
+		//$this->data['budgetOther']  = $this->projectModel->getBugetOther($id);
+		$this->load->view('timesheet_allowance_form',$this->data);
+	} // END PROJECT EDIT
     
     
-    function vacationsave()
-    {
-        $this->load->model('vacationModel');
-        $this->load->model('holidayModel');
-        $date_from = preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1', $this->input->post('date_from'));
-        $date_to = preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1', $this->input->post('date_to'));
-        
-        $total = getRangeDate(substr($date_from,8,2),substr($date_from,5,2),substr($date_from,0,4),substr($date_to,8,2),substr($date_to,5,2),substr($date_to,0,4));
-        for($i=0;$i<=$total;$i++):
-            $date  = $date_from;
-            $ndate = date("Y-m-d", strtotime("$date +$i day"));
-            if (!getHoliday(substr($ndate,0,4),substr($ndate,5,2),substr($ndate,8,2))):
-                if(!$this->holidayModel->getHolidayDate($ndate))
-                    $this->vacationModel->saveVacation($ndate,'Save');
-            endif;
-        endfor;    
-        redirect('timesheet/vacationrequests/',301);
-    }
-    
-    function deleteVacation($day,$month,$year){
-        $this->load->model('vacationModel');    
-        $ID   = $this->session->userdata('employee_id');
-        $date = $year.'-'.$month.'-'.$day; 
-        $this->vacationModel->getDeleteVacation($ID,$date);
-        redirect($this->input->server('HTTP_REFERER'),301);
-    }
-    
-    function deleteVacationDetails($ID){     
-        $this->vacationModel->getDeleteVacationDetails($ID);
-        redirect($this->input->server('HTTP_REFERER'),301);
-    }
 }	

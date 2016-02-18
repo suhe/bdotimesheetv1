@@ -31,11 +31,13 @@ class Admin extends MY_Controller{
 	/*-------------------------------------------------------------------------------------*/
 	public function app_choice($app) 	{
 		$result['acl'] = $this->session->userdata ( 'acl' );
-		if ($result ['acl'] == "09") {
+		if($app == allowence){
+			redirect ( 'timesheet/allowence' );
+		}elseif ($result ['acl'] == "09") {
 			redirect ( 'admin/user/' );
-		} elseif ($result ['acl'] == "008" || $result ['acl'] == "01" || $result ['acl'] == "02" || $result ['acl'] == "03") {
+		}elseif ($result ['acl'] == "008" || $result ['acl'] == "01" || $result ['acl'] == "02" || $result ['acl'] == "03") {
 			redirect ( 'project/' );
-		} else {
+		}else {
 			redirect ( 'timesheet/' );
 		}
 	} 

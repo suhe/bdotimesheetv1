@@ -8,11 +8,13 @@
 	<table align=center style="width:100%">
 		<tr>
 			<td style="width:15%;text-align:center"><a href="<?=base_url()?>admin/app_choice/timesheet"><img src="<?=base_url()?>images/timesheet.png" /></a></td>
+			<td style="width:15%;text-align:center"><a href="<?=base_url()?>admin/app_choice/allowance"><img src="<?=base_url()?>images/allowences.png"/></a></td>
 			<td style="width:15%;text-align:center"><a class="app_leave" href="#"><img src="<?=base_url()?>images/vacation.png" /></a></td>
 			<td style="width:70%"></td>
 		</tr>
 		<tr>
 			<td style="width:15%;text-align:center"><a style="font-size:14px" href="<?=base_url()?>admin/app_choice/timesheet">Go to Timesheet</a></td>
+			<td style="width:15%;text-align:center"><a style="font-size:14px" href="<?=base_url()?>admin/app_choice/allowence">Go to Allowence</a></td>
 			<td style="width:15%;text-align:center"><a style="font-size:14px" class="app_leave" href="#">Go to Leave</a></td>
 			<td style="width:70%"></td>
 		</tr>		
