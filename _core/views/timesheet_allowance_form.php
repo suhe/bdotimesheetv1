@@ -2,9 +2,8 @@
 $this->load->view('site_header');?>
 <div class="grid_12">
 	<h2 id="page-spacer"></h2>
-	<form id="form_project" method="POST" action="<?=$site ?>/project/Update/" >
-		<input type="hidden" id="project_id" name="project_id" value="<?=$form['project_id'] ?>"  />
-		
+	<form id="form_project" method="POST" action="<?=$site ?>/timesheet/allowence_update/" >
+		<input type="hidden" id="id" name="id" value="<?=isset($form['id']) ? $form['id']:null ?>"  />
 		<fieldset class="form-fieldset">
 		<legend class="form-legend">Allowance Information</legend>
 	<table>
@@ -16,38 +15,38 @@ $this->load->view('site_header');?>
 	<table style="vertical-align:top;">
 		<tr>
 			<td class="label">Client Name   : </td>
-			<td><input type="text" class="inputtext mandatory" id="contract_no" name="contract_no"  value="<?=$form['contract_no'] ?>" size="40" /> * </td>
+			<td><?=form_dropdown('client_id', $client_lists,isset($form['client_id']) ? $form['client_id']:0 )?></td>
 		
 		<tr>
 			<td class="label">Project No : </td>
-			<td><input type="text" class="inputtext mandatory" id="contract_no" name="contract_no"  value="<?=$form['contract_no'] ?>" size="40" /> *</td>
+			<td><?=form_dropdown('project_id', [],isset($form['client_id']) ? $form['client_id']:0 )?></td>
 		</td>
 		<tr>
 			<td class="label">Approval Project : </td>
-			<td><input type="text" class="inputtext mandatory" id="contract_no" name="contract_no"  value="<?=$form['contract_no'] ?>" size="40" /> *</td>
+			<td><?=form_dropdown('approval_id',[],isset($form['client_id']) ? $form['client_id']:0 )?></td>
 		</td>
 		<tr>
 			<td class="label">Start Date : </td>
-			<td><input type="text"  class="inputtext date" readonly="true" id="start_date" name="start_date" value="" size="40" style="width:80px;" style="width:80px;"/>
+			<td><input type="text"  class="inputtext date" readonly="true" id="start_date" name="start_date" value="<?=isset($form['date_from']) ? $form['date_from'] : ""?>" size="40" style="width:80px;" style="width:80px;"/>
 				 &nbsp;&nbsp; Finish Date :  &nbsp;&nbsp;	
-				<input type="text"  class="inputtext date" readonly="true" id="finish_date" name="finish_date" value="" size="40" style="width:80px;" style="width:80px;"/>
+				<input type="text"  class="inputtext date" readonly="true" id="finish_date" name="finish_date" value="<?=isset($form['date_to']) ? $form['date_to'] : ""?>" size="40" style="width:80px;" style="width:80px;"/>
 			</td>
 		</tr>
 		<tr>
 			<td class="label">Number of Employee : </td>
-			<td><input type="text" class="inputtext mandatory" id="contract_no" name="contract_no"  value="<?=$form['contract_no'] ?>" size="40" /> *</td>
+			<td><input type="text" class="inputtext mandatory" id="employee_total" name="employee_total"  value="<?=isset($form['employee_total']) ? $form['employee_total'] : ""?>" size="40" /> *</td>
 		</td>
 		<tr>
 			<td class="label">Total Allowance : </td>
-			<td><input type="text" class="inputtext mandatory" id="contract_no" name="contract_no"  value="<?=$form['contract_no'] ?>" size="40" /> *</td>
+			<td><input type="text" class="inputtext mandatory currency" id="total_allowance" name="total"  value="<?=isset($form['total']) ? $form['total'] : 0?>" size="18" /> *</td>
 		</td>
 		<tr>
 			<td class="label" nowrap style="width:180px;">Date Realization : </td>
-			<td><input type="text"  class="inputtext date mandatory" readonly="true" id="date_from" name="year_end" value="" size="40" style="width:80px;"/> *</td>
+			<td><input type="text"  class="inputtext date mandatory" readonly="true" id="date_realization" name="date_realization" value="<?=isset($form['date_realization']) ? $form['date_realization'] : ""?>" size="40" style="width:80px;"/> *</td>
 		</tr>
 		<tr>
 			<td class="label" nowrap style="width:180px;">Date Approved : </td>
-			<td><input type="text"  class="inputtext date mandatory" readonly="true" id="date_to" name="year_end" value="" size="40" style="width:80px;"/> *</td>
+			<td><input type="text"  class="inputtext date mandatory" readonly="true" id="date_approved" name="date_approved" value="<?=isset($form['date_approved']) ? $form['date_approved'] : ""?>" size="40" style="width:80px;"/> *</td>
 		</tr>
 		
 	</table>
@@ -73,7 +72,55 @@ $this->load->view('site_header');?>
 </table>	
 		
 <script>
-// When the page is ready
+$(function() {
+	var client_id = $("select[name='client_id']").val();
+	//alert(client_id);
+	loadProject(client_id);
+	
+	function loadProject(args) {
+		$.getJSON("<?=base_url()?>timesheet/loadclientproject",
+			{ client_id: args },
+			function(data) {
+				var model = $('select[name="project_id"]');
+				model.empty();
+				$.each(data, function(key,value) {
+					model.append("<option value='"+ value.project_id +"'>" + value.project_no + "</option>");
+				});
+					
+			});
+		
+	}
+
+	var project_id = $("select[name='project_id']").val();
+	loadApprovalProject(project_id);
+	function loadApprovalProject(args) {
+		$.getJSON("<?=base_url()?>timesheet/loadapprovalproject",
+			{ project_id: args },
+			function(data) {
+				var model = $('select[name="approval_id"]');
+				model.empty();
+				$.each(data, function(key,value) {
+					model.append("<option value='"+ value.employee_id +"'>" + value.approval_name + "</option>");
+				});
+					
+			});
+		
+	}
+
+	$("select[name='client_id']").change( function (e) {
+		var id = $(this).val();
+		loadApprovalProject(id);
+	});
+
+	$("select[name='project_id']").change( function (e) {
+		var id = $(this).val();
+		loadProject(id);
+	});
+
+	
+
+	
+});
 
 
 function addCommas(nStr)

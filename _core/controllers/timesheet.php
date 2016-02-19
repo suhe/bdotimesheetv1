@@ -524,25 +524,21 @@ class Timesheet extends MY_Controller{
 	/*-------------------------------------------------------------------------------------*/
 	public function allowance($pg=1, $limit=0) {
 		$this->getMenu();
-		$form = array();
-		$data = array('client_name','project_no','project');
-		if($this->input->post('client_name')) $form['client_name'] = $this->input->post('client_name');
-		if($this->input->post('project_no'))$form['project_no']  = $this->input->post('project_no');
-		if($this->input->post('project')) $form['project']   	 = $this->input->post('project');
-			
-		$this->session->set_userdata($form);
-		if($this->session->userdata('client_name')) $form['client_name'] = $this->session->userdata('client_name');
-		if($this->session->userdata('project_no')) 	$form['project_no']	= $this->session->userdata('project_no');
-		if($this->session->userdata('project')) 	$form['project']   	= $this->session->userdata('project');
-		
+		$form = array(
+			'client_name' => $this->input->get('client_name'),
+			'project_no' => 	$this->input->get('project_no'),
+		);
+	
 		if($limit) {
 			$this->session->set_userdata('rpp', $limit);
 			$this->rpp = $limit;
 		}
-		$limit				 	= $limit ? $limit : $this->rpp;
-		$totalRow			 	= count($this->timesheetModel->getAllowance($form));
-		$this->data['pg']	 	= $this->setPaging($totalRow, $pg, $limit);
-		$this->data['table']	= $this->timesheetModel->getAllowance($form, $limit, $this->data['pg']['o']);
+		
+		$limit = $limit ? $limit : $this->rpp;
+		$totalRow = count($this->timesheetModel->getAllowance($form));
+		$this->data['form'] = $form;
+		$this->data['pg'] = $this->setPaging($totalRow, $pg, $limit);
+		$this->data['rows']	= $this->timesheetModel->getAllowance($form, $limit, $this->data['pg']['o']);
 		$this->load->view('timesheet_allowance',$this->data);
 	}
 	
@@ -551,47 +547,33 @@ class Timesheet extends MY_Controller{
 	/*-------------------------------------------------------------------------------------*/
 	public function allowance_form($id = 0, $msg='') 	{
 		$this->getMenu() ;
+		$this->data['client_lists'] = $this->timesheetModel->clientListDropdown('client_name','client_id');
 		$this->data['form']	= $this->timesheetModel->getAllowanceDetail($id);
-		if ( count($this->data['form'])	== 0 ) {
-			$this->data['form']['message']					= '';
-			$this->data['form']['client_id']					= 0;
-			$this->data['form']['project_id']				= 0;
-			$this->data['form']['jobtype_id']					= 0;			
-			$this->data['form']['project_no']				= '';
-			$this->data['form']['project']					= '';
-			$this->data['form']['location']					= '';
-			$this->data['form']['year_end']					= '';
-			$this->data['form']['start_date']				= '';
-			$this->data['form']['finish_date']				= '';
-			$this->data['form']['contract_no']				= '';
-			$this->data['form']['client_approval']			= '';	
-			$this->data['form']['client_approval_date']	= '';
-			$this->data['form']['status_collection']		= '';
-			$this->data['form']['project_status']			= '';	
-			$this->data['form']['budget_hour']				= '';
-			$this->data['form']['hour']						= '';
-			$this->data['form']['budget_cost']				= '';
-			$this->data['form']['cost']						= '';
-			$this->data['form']['project_approval'] 		= '';
-			$this->data['form']['location'] 			    = '0';
-			$this->data['form']['createuser']			    = '';
-			$this->data['form']['createdate']				= '';
-			$this->data['form']['creator']					= '';
-			$this->data['form']['project_note']				= '';
-		}
-		
-		
 		$this->data['form']['message']=$msg;
 		$this->data['back']		 = $this->data['site'] .'/project';
 		$this->data['approve']	 = $this->data['site'] .'/project/request/'.$id;
 		$this->data['cclient'] 	 = "";
-		//$this->data['client'] 	 = $this->projectModel->getClientOption();
-		//$this->data['jobtype'] 	 = $this->projectModel->getJobType();
-		//$this->data['table'] 		= $this->projectModel->getProjectAuditor($id);
-		//$this->data['budgetTotal']  = $this->projectModel->getBugetTotal($id);
-		//$this->data['budgetOther']  = $this->projectModel->getBugetOther($id);
 		$this->load->view('timesheet_allowance_form',$this->data);
 	} // END PROJECT EDIT
-    
+	
+	public function loadclientproject() {
+		$result = array();
+		$client_id = $this->input->get('client_id');
+		$projects = $this->timesheetModel->getProjectByClient($client_id);
+		foreach($projects as $row) {
+			$result[] = $row;
+		}
+		print json_encode($result);
+	}
+	
+	public function loadapprovalproject() {
+		$result = array();
+		$project_id = $this->input->get('project_id');
+		$projects = $this->timesheetModel->getEmployeeProjectByApproval($project_id);
+		foreach($projects as $row) {
+			$result[] = $row;
+		}
+		print json_encode($result);
+	}
     
 }	
