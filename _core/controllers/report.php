@@ -510,6 +510,64 @@ class Report extends MY_Controller {
 		$this->load->view ( 'report_project_group', $this->data );
 	} // END reportTimesheetCompletion
 	
+	
+	public function reportAllowance() {
+		$this->getMenu ();
+		$this->data ['form'] ['date_from'] = $this->input->post ( 'date_from' );
+		$this->data ['form'] ['date_to'] = $this->input->post ( 'date_to' );
+		$this->data ['form'] ['department_id'] = $this->input->post ( 'department_id' );
+		$this->data ['back'] = $this->data ['site'] . '/report';
+		$this->data ['department'] = $this->reportModel->getDepartmentById($this->data ['form'] ['department_id']);
+		$this->data ['department_name'] = $this->data ['department'] ? $this->data ['department']['department'] : "";
+		//$date_from = preg_replace ( '!(\d+)/(\d+)/(\d+)!', '\3-\2-\1', $this->data ['form'] ['date_from'] );
+		//$date_to = preg_replace ( '!(\d+)/(\d+)/(\d+)!', '\3-\2-\1', $this->data ['form'] ['date_to'] );
+		$records = $this->reportModel->getAllowance($this->data ['form']);
+	
+		if ((strlen ( $this->data ['form'] ['date_from'] > 0 )) && ($records)) {
+			$no = 1;
+			$i = 1;
+			$total_days = 0;
+			$total_employee = 0;
+			$total_cost = 0;
+			$this->data['table'] = "";
+			foreach($records as $key => $rec ) {
+				$class = ($i % 2 == 0) ? $class = 'class="odd"' : ' ';
+				$this->data['table'].= '<tr ' . $class . '>';
+				$this->data['table'].= '<td>'.$no.'</td>';
+				$this->data['table'].= '<td>'.$rec["date_from"].' - '.$rec["date_to"].'</td>';
+				$this->data['table'].= '<td class="currency">'.$rec["total_day"].'</td>';
+				$this->data['table'].= '<td>'.$rec["client_name"].'</td>';
+				$this->data['table'].= '<td>'.$rec["project_no"].'</td>';
+				$this->data['table'].= '<td>'.$rec["approval_name"].'</td>';
+				$this->data['table'].= '<td class="currency">'.$rec["total_employee"].'</td>';
+				$this->data['table'].= '<td>'.$rec["date_realization"].'</td>';
+				$this->data['table'].= '<td>'.$rec["date_approved"].'</td>';
+				$this->data['table'].= '<td>'.($rec["date_approved"] == '-'?'Waiting':'Approved').'</td>';
+				$this->data['table'].= '<td class="currency">'.number_format($rec["total"],2).'</td>';
+				$this->data['table'].= '</tr>';
+				$no ++;
+				$total_days+=$rec['total_day'];
+				$total_employee+=$rec['total_employee'];
+				$total_cost+=$rec['total'];
+			}
+			//total summary
+			$this->data['table'].= '<tr ' . $class . '>';
+			$this->data['table'].= '<td class="currency" colspan="2">Total Days</td>';
+			$this->data['table'].= '<td class="currency">'.number_format($total_days).'</td>';
+			$this->data['table'].= '<td class="currency" colspan="3">Total Employee</td>';
+			$this->data['table'].= '<td class="currency">'.number_format($total_employee).'</td>';
+			$this->data['table'].= '<td class="currency" colspan="3">Total Cost</td>';
+			$this->data['table'].= '<td class="currency">'.number_format($total_cost,2).'</td>';
+			$this->data['table'].= '</tr>';
+			
+			
+				
+		} else {
+			$this->data ['table'] = '';
+		}
+		$this->load->view ( 'report_allowance', $this->data );
+	} 
+	
 	function reportTimesheetCompletion() {
 		$this->getMenu ();
 		$this->data ['form'] ['date_from'] = $this->input->post ( 'date_from' );

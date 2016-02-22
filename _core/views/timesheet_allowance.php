@@ -52,15 +52,18 @@ $this->load->view('site_header');
 						<thead>
 							<tr>
 								<th>No</th>
-								<th>Date From</th>
-								<th>Date To</th>
+								<th>#</th>
+								<th>From</th>
+								<th>To</th>
+								<th>Days</th>
 								<th>Client</th>
-								<th>Project</th>						
+								<th>Project</th>	
+								<th>MIC</th>					
 								<th class=currency style='padding-right:30px;'>Employee</th>
-								<th>Date Realization</th>
-								<th>Date Approved</th>
+								<th>Realization</th>
+								<th>Approved</th>
 								<th class=currency style='padding-right:30px;'>Total</th>
-								<th>*</th>
+								<th style="width:100px">*</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -69,17 +72,26 @@ $this->load->view('site_header');
 						foreach($rows as $row) { ?>
 						<tr>
 							<td><?=$i?></td>
+							<td>
+							<?php
+								if($row["date_approved"] == '-')
+									echo '<img src="'.base_url().'/images/BulletRed.png"/>';
+								else 
+									echo '<img src="'.base_url().'/images/BulletGreen.png"/>';
+							?></td>
 							<td><?=$row["date_from"]?></td>
 							<td><?=$row["date_to"]?></td>
+							<td><?=$row["total_day"]?></td>
 							<td><?=$row["client_name"]?></td>
 							<td><?=$row["project_no"]?></td>
-							<td class=currency style='padding-right:30px;'><?=$row["employee_total"]?></td>
+							<td><?=$row["approval_name"]?></td>
+							<td class=currency style='padding-right:30px;'><?=$row["total_employee"]?></td>
 							<td><?=$row["date_realization"]?></td>
 							<td><?=$row["date_approved"]?></td>
 							<td class=currency style='padding-right:30px;'><?=number_format($row["total"],2)?></td>
 							<td>
-								<a href="<?=base_url()?>timesheet/allowance/form/<?=$row["id"]?>" >[Edit]</a>
-								<a href="<?=base_url()?>timesheet/allowance/remove/<?=$row["id"]?>" >[Remove]</a>
+								<a href="<?=base_url()?>timesheet/allowance_form/<?=$row["id"]?>" >[Edit]</a>
+								<a href="<?=base_url()?>timesheet/allowance_remove/<?=$row["id"]?>" >[Remove]</a>
 							</td>
 						</tr>
 						<?php 

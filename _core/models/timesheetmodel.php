@@ -76,18 +76,25 @@ class timesheetModel extends CI_Model {
 	//  getProject
 	/*-------------------------------------------------------------------------------------*/
 	public  function getProjectByClient($client_id) {
-		$sql = "select project_id,project_no from project a
-		where a.client_id = ".($client_id ? $client_id : 0)." order by a.project_no";
+		$sql = "select p.project_id,p.project_no 
+				from project p
+				inner join project_team pt on pt.project_id = p.project_id
+				where p.client_id = ".($client_id ? $client_id : 0)."
+				and pt.employee_id = ".$this->session->userdata('employee_id')."
+				group by p.project_id 
+				order by p.project_no";
 		return $this->rst2Array($sql) ;
 	}
 	
 	//  getProject
 	/*-------------------------------------------------------------------------------------*/
-	public  function getEmployeeProjectByApproval($approval_id) {
+	public  function getEmployeeProjectByApproval($project_id) {
 		$sql = "select e.employee_id,CONCAT(e.EmployeeID,' ',e.EmployeeFirstName,' ',e.EmployeeMiddleName,' ',e.EmployeeLastName) as approval_name
 				from project_team pt
-				inner join employee e on e.employee_id = pt.approval_id
-				where pt.project_id = ".($approval_id ? $approval_id : 0)." order by e.EmployeeFirstName ASC";
+				inner join employee e on e.employee_id = pt.employee_id
+				where pt.project_id = ".($project_id ? $project_id : 0)." 
+				group by pt.employee_id 
+				order by e.EmployeeFirstName ASC";
 		return $this->rst2Array($sql) ;
 	}
 	
@@ -926,17 +933,23 @@ class timesheetModel extends CI_Model {
 	public  function getAllowance($filter=null, $limit=100, $offset=0) {
 		$sql = "
 			select  a.id,DATE_FORMAT(date_from,'%d/%m/%Y') as date_from,DATE_FORMAT(date_to,'%d/%m/%Y') as date_to,
-			c.client_name,p.project_no,employee_total,DATE_FORMAT(date_realization,'%d/%m/%Y') as date_realization,
+			c.client_name,p.project_no,total_day,total_employee,DATE_FORMAT(date_realization,'%d/%m/%Y') as date_realization,
+			CONCAT(e.EmployeeFirstName,' ',EmployeeLastName) as approval_name,	
 			if(date_approved!='0000-00-00',DATE_FORMAT(date_from,'%d/%m/%Y'),'-') as date_approved,total	
 			from allowances a
-			inner join project p on p.project_id = a.project_id 
+			inner join project p on p.project_id = a.project_id
+			inner join project_team pt on pt.project_id = p.project_id	
 			inner join client c on c.client_id = p.client_id 
-			and a.id > 0	
+			inner join employee e on e.employee_id = a.approval_id	
+			where pt.employee_id = ".$this->session->userdata('employee_id')."	
 		";
 		if(isset($filter['client_name']))
 			$sql.=" AND client_name LIKE '%".$filter['client_name']."%' ";
 		if(isset($filter['project_no']))
 			$sql.=" AND project_no LIKE '%".$filter['project_no']."%' ";
+		
+		$sql.= " group by a.id order by date_from desc limit ".$offset.",".$limit." ";
+		
 		return $limit ? $this->rst2Array($sql) : $this->rst2Array($sql, 11);
 	}
 	
@@ -944,8 +957,12 @@ class timesheetModel extends CI_Model {
 	/*-------------------------------------------------------------------------------------*/
 	public  function getAllowanceDetail($id) {
 		$sql = "
-			select DATE_FORMAT(date_from,'%d/%m/%Y') as date_from
-			from allowances
+			select id,p.client_id,a.project_id,a.approval_id,DATE_FORMAT(date_from,'%d/%m/%Y') as date_from,
+			DATE_FORMAT(date_from,'%d/%m/%Y') as date_to,total_employee,total_day,total,
+			DATE_FORMAT(date_realization,'%d/%m/%Y') as date_realization,created_by,
+			if(date_approved!='0000-00-00',DATE_FORMAT(date_from,'%d/%m/%Y'),'') as date_approved
+			from allowances a 
+			inner join project p on p.project_id = a.project_id	
 			where id = ".$id;
 		return $this->rst2Array($sql, 10);
 	}
@@ -957,7 +974,12 @@ class timesheetModel extends CI_Model {
 	
 	public function clientListDropdown($value,$id) {
 		$sql = "
-			select * from client	
+			select * from client c
+			inner join project p on p.client_id = c.client_id
+			inner join project_team pt on pt.project_id = p.project_id
+			where pt.employee_id = ".$this->session->userdata('employee_id')."
+			group by c.client_id
+			order by c.client_name ASC		
 		";
 		$query = $this->rst2Array($sql);
 		$lists = [];
@@ -967,6 +989,18 @@ class timesheetModel extends CI_Model {
 			}
 		}
 		return $lists;
+	}
+	
+	public function isHoliday($date) {
+		$sql = "
+			select * from holiday
+			where holiday_date = '".$date."'
+		";
+		$q = $this->rst2Array($sql,11);
+		if(count($q)) 
+			return true;
+		else
+			return false;
 	}
 	
 }

@@ -23,7 +23,8 @@ if ($this->session->userdata('acl') === '01' || $this->session->userdata('acl') 
 				<tr><td><a href="<?=base_url()?>report/reportAbsentByEmployee/">- Absent by Employee</td></tr>
 				<tr><td><a href="<?=base_url()?>report/reportSummaryproject/">- Summary Report Project</td></tr>
 				<tr><td><a href="<?=base_url()?>report/reportTimesheetGroup/">- Timesheet Completion Group</td></tr>	
-				<tr><td><a href="<?=base_url()?>report/reportProjectGroup/">- Project Completion Per Group</td></tr>	 
+				<tr><td><a href="<?=base_url()?>report/reportProjectGroup/">- Project Completion Per Group</td></tr>
+				<tr><td><a href="<?=base_url()?>report/reportAllowance/">- Allowances Outside City</td></tr>	 
 				<tr><td></tr>
 				</table>	
 			<td>

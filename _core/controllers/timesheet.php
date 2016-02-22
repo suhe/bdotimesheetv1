@@ -545,11 +545,10 @@ class Timesheet extends MY_Controller{
 	/*-------------------------------------------------------------------------------------*/
 	//  Allowance Form
 	/*-------------------------------------------------------------------------------------*/
-	public function allowance_form($id = 0, $msg='') 	{
+	public function allowance_form($id = 0) 	{
 		$this->getMenu() ;
 		$this->data['client_lists'] = $this->timesheetModel->clientListDropdown('client_name','client_id');
 		$this->data['form']	= $this->timesheetModel->getAllowanceDetail($id);
-		$this->data['form']['message']=$msg;
 		$this->data['back']		 = $this->data['site'] .'/project';
 		$this->data['approve']	 = $this->data['site'] .'/project/request/'.$id;
 		$this->data['cclient'] 	 = "";
@@ -574,6 +573,122 @@ class Timesheet extends MY_Controller{
 			$result[] = $row;
 		}
 		print json_encode($result);
+	}
+	
+	public function allowance_update() {
+		$result = array ('error' => true);
+		$id = $this->input->post('id');
+		if(!$id) {
+			if($this->setInsertAllowance())
+				$result = array ('error' => false);
+		} else {
+			if($this->setUpdateAllowance())
+				$result = array ('error' => false);
+		}
+		
+		print json_encode($result);
+	}
+	
+	public function setInsertAllowance() {
+		$project_id = $this->input->post('project_id');
+		$approval_id = $this->input->post('approval_id');
+		$date_from = $this->input->post('date_from');
+		$date_to = $this->input->post('date_to');
+		$total_days = $this->countRangeDate($date_from,$date_to);
+		$employee_total = $this->input->post('employee_total');
+		$allowance_total = $this->input->post('allowance_total');
+		$date_realization = $this->input->post('date_realization');
+		$date_approved = $this->input->post('date_approved');
+		
+		$this->val = array(
+			'project_id' => $project_id,
+			'approval_id' => $approval_id,
+			'date_from' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_from),
+			'date_to' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_to),
+			'total_day' => $total_days,
+			'total' => $allowance_total,
+			'total_employee' => $employee_total,
+			'date_realization' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_realization),
+			'date_approved' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_approved),
+			'created_by' => $this->session->userdata('employee_id'),
+			'created_at' => date('Y-m-d H:i:s')	
+		);
+		
+		if($this->db->insert('allowances',$this->val))
+			return true;
+		else 
+			return false;
+	}
+	
+	public function setUpdateAllowance() {
+		$id = $this->input->post('id');
+		$project_id = $this->input->post('project_id');
+		$approval_id = $this->input->post('approval_id');
+		$date_from = $this->input->post('date_from');
+		$date_to = $this->input->post('date_to');
+		$total_days = $this->countRangeDate($date_from,$date_to);
+		$employee_total = $this->input->post('employee_total');
+		$allowance_total = $this->input->post('allowance_total');
+		$date_realization = $this->input->post('date_realization');
+		$date_approved = $this->input->post('date_approved');
+	
+		$this->val = array(
+				'project_id' => $project_id,
+				'approval_id' => $approval_id,
+				'date_from' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_from),
+				'date_to' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_to),
+				'total_day' => $total_days,
+				'total' => $allowance_total,
+				'total_employee' => $employee_total,
+				'date_realization' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_realization),
+				'date_approved' => preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_approved),
+				'created_by' => $this->session->userdata('employee_id'),
+				'created_at' => date('Y-m-d H:i:s')
+		);
+		
+		$this->db->where('id',$id);
+		if($this->db->update('allowances',$this->val))
+			return true;
+		else
+			return false;
+	}
+	
+	private function countRangeDate($date_from,$date_to) {
+		$data = array();
+		$data['count'] = 0;
+		$date_from = preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_from);
+		$date_to = preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$date_to);
+		$range = strtotime($date_to) -  strtotime($date_from);
+		$range = ($range/(60*60*24)) + 1;
+		 
+		$new_date = $date_from;
+		for($i=1;$i<=$range;$i++) {
+			if(date('N', strtotime($new_date))< 6 ) {
+				//check holiday
+				$holiday = $this->timesheetModel->isHoliday($new_date);
+				if(!$holiday) {
+					$data['count']+=1;
+				}
+			}
+		
+			//counter for new date
+			$new_date = date('Y-m-d', strtotime('+1 days', strtotime($new_date)));
+		}
+		 
+		return $data['count'];
+	}
+	
+	public function allowance_remove($id) {
+		$this->data['form']	= $this->timesheetModel->getAllowanceDetail($id);
+		if($this->data['form']["created_by"] ==$this->session->userdata('employee_id')) {
+			$this->db->where('id',$id);
+			$this->db->delete('allowances');
+			
+		}else {
+			
+		}
+		
+		redirect($this->input->server('HTTP_REFERER'),301);
 	}
     
 }	

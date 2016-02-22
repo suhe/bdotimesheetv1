@@ -31,8 +31,8 @@ class Admin extends MY_Controller{
 	/*-------------------------------------------------------------------------------------*/
 	public function app_choice($app) 	{
 		$result['acl'] = $this->session->userdata ( 'acl' );
-		if($app == allowence){
-			redirect ( 'timesheet/allowence' );
+		if($app == 'allowance'){
+			redirect ( 'timesheet/allowance' );
 		}elseif ($result ['acl'] == "09") {
 			redirect ( 'admin/user/' );
 		}elseif ($result ['acl'] == "008" || $result ['acl'] == "01" || $result ['acl'] == "02" || $result ['acl'] == "03") {

@@ -1141,8 +1141,38 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 		$sql .= " order by CONCAT(employeefirstname,' ',employeemiddlename,' ',employeelastname) ASC LIMIT 300";
 		return $this->rst2Array ( $sql );
 	}
+	
 	public function getTMPEmployeeWeekInsert($form) {
 		return $this->db->insert ( 'tmp_employee_week', $form );
+	}
+	
+	//  getProject
+	/*-------------------------------------------------------------------------------------*/
+	public  function getAllowance($filter = array()) {
+		$sql = "
+			select  a.id,DATE_FORMAT(date_from,'%d/%m/%Y') as date_from,DATE_FORMAT(date_to,'%d/%m/%Y') as date_to,
+			c.client_name,p.project_no,total_day,total_employee,DATE_FORMAT(date_realization,'%d/%m/%Y') as date_realization,
+			CONCAT(e.EmployeeFirstName,' ',EmployeeLastName) as approval_name,
+			if(date_approved!='0000-00-00',DATE_FORMAT(date_from,'%d/%m/%Y'),'-') as date_approved,total
+			from allowances a
+			inner join project p on p.project_id = a.project_id
+			inner join project_team pt on pt.project_id = p.project_id
+			inner join client c on c.client_id = p.client_id
+			inner join employee e on e.employee_id = a.approval_id
+			inner join department d on d.department_id = e.department_id	
+			where a.id > 0
+		";
+		if(isset($filter['department_id'])) {
+			if($filter['department_id']) $sql.=" AND d.department_id = ".$filter['department_id']."";
+		}		
+		if(isset($filter['date_from']) && isset($filter['date_to'])) {
+			$date_from = preg_replace ( '!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$filter['date_from'] );
+			$date_to = preg_replace ( '!(\d+)/(\d+)/(\d+)!', '\3-\2-\1',$filter['date_to'] );
+			$sql.=" AND date_realization>='".$date_from."' AND date_realization<='".$date_to."' ";
+		}
+		
+		$sql.= " group by a.id order by date_from asc ";
+		return $this->rst2Array($sql);
 	}
 }
 /* End of file mainModel.php */
