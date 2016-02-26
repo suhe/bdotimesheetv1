@@ -65,7 +65,8 @@ $this->load->view('site_header');?>
 </tr>
 <tr>
 	<td colspan=2 align="center" style="text-align:center;">
-		<div style="margin-left:30%" class="ff3 UILinkButton" >
+		<div style="margin-left:30%" class="ff3 UILinkButton">
+			<div class="loading-div"></div>
 			<input type="submit"  id="submit"  value="Save" class="ff3 UILinkButton_A"/>
 			<div class="UILinkButton_RW">
 				<div class="UILinkButton_R"/></div>
@@ -225,6 +226,9 @@ $(function() {
 		}
 
 		if(project_id && approval_id && date_from && date_to && employee_total && allowance_total && date_realization) {
+			$(".loading-div").show("slow");
+			$("#submit").hide("slow");
+			$("#back").hide("slow");
 			$.ajax({
 			    type:'POST',
 			    data:{id:id,project_id:project_id,approval_id:approval_id,date_from:date_from,date_to:date_to,employee_total:employee_total,allowance_total:allowance_total,date_realization:date_realization,date_approved:date_approved},
@@ -232,10 +236,17 @@ $(function() {
 			    url:'<?=base_url()?>timesheet/allowance_update',
 			    success:function(data) {
 			     	if(data.error == false) {
-			     		$(location).attr('href', '<?=base_url()?>timesheet/allowance')
+			     		$(location).attr('href', '<?=base_url()?>timesheet/allowance');
+			     		//$(".loading-div").hide("slow");
+						//$("#submit").show("slow");
+						//$("#back").show("slow");
 				     }
 			    }
 			});
+
+			$(".loading-div").hide("slow");
+			$("#submit").show("slow");
+			$("#back").show("slow");
 		}
 		
 		return false;

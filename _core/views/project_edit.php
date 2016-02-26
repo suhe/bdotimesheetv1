@@ -94,7 +94,7 @@ if ( strlen( $form['createdate']) >0) {
 ?> 
 <div class="grid_12">
 	<h2 id="page-spacer"></h2>
-	<form id="form_project" method="POST" action="<?=$site ?>/project/Update/" >
+	<form id="form_project" method="POST" action="<?=$site ?>project/Update/" >
 		<input type="hidden" id="project_id" name="project_id" value="<?=$form['project_id'] ?>"  />
 		
 		<fieldset class="form-fieldset">
@@ -162,7 +162,7 @@ if ( strlen( $form['createdate']) >0) {
 			<?php //$team ?>
 			
 			<?php 
-             if($this->session->userdata('department_id')==7){			
+             if($this->session->userdata('department_id') == 7){			
 				print $this->load->view('project_team_bki');
 			 } else  {
 			    print $team;

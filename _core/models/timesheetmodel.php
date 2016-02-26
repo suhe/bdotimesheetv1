@@ -425,6 +425,26 @@ class timesheetModel extends CI_Model {
 		return $this->rst2Array($sql);
 	}
 	
+	//  checkTimesheetWeek
+	/*-------------------------------------------------------------------------------------*/
+	public  function getAllTimesheetByStatus($id) {
+		$sql = "
+			select *
+			from timesheet
+			where timesheet_status_id=".$id;
+		return $this->rst2Array($sql);
+	}
+	
+	//  checkTimesheetWeek
+	/*-------------------------------------------------------------------------------------*/
+	public  function getTimesheetById($id) {
+		$sql = "
+			select *
+			from timesheet
+			where timesheetid=".$id;
+		return $this->rst2Array($sql,11);
+	}
+	
 	//  checkLeaveTimesheet
 	/*-------------------------------------------------------------------------------------*/
 	public function checkLeaveTimesheet($date) {
@@ -439,13 +459,38 @@ class timesheetModel extends CI_Model {
 	
 	//  checkLeaveTimesheet
 	/*-------------------------------------------------------------------------------------*/
-	public function sumLeaveByEmployee($employee_id) {
+	public function sumEmployeeLeave($employee_id) {
+		//Leaves
 		$sql = "
 			select sum(leave_total) as total
 			from leaves
-			where leave_approved = 1
-			and employee_id=".$employee_id;
-		return $this->rst2Array($sql, 10);
+			where leave_status = 1 and employee_id=".$employee_id;
+		$ldata =  $this->rst2Array($sql, 10);
+		
+		$leave_total = 0;
+		if($ldata) {
+			$leave_total+=$ldata["total"]; 
+		} 
+		
+		
+		//Leaves
+		$sql = "
+			select sum(leave_balance_total) as total
+			from leave_balance where employee_id =".$employee_id;
+		$bdata =  $this->rst2Array($sql, 10);
+		
+		$balance_total = 0;
+		if($bdata) {
+			$balance_total+=$bdata["total"];
+		}
+		
+		$data = array (
+			'balance' => $balance_total,
+			'leave' => $leave_total	
+		);
+		
+		return $data;
+		
 	}
 
 	//  insertTimesheetWeekly
@@ -459,7 +504,7 @@ class timesheetModel extends CI_Model {
 
 	//  saveTimesheet
 	/*-------------------------------------------------------------------------------------*/
-	function saveTimesheet($form, $timesheet_status_id) {
+	public function saveTimesheet($form, $timesheet_status_id) {
 		$timesheetdate= preg_replace('!(\d+)/(\d+)/(\d+)!', '\3-\2-\1', $form['timesheetdate']);
 		$note = $this->db->escape_str($form['notes']);
 		$client_name_descripiton = $this->db->escape_str($form['client_name_description']);
@@ -474,74 +519,73 @@ class timesheetModel extends CI_Model {
 					'$form[job_id]','$client_name_descripiton', '".$note."', '$timesheetdate', $form[hour], $form[overtime],  $form[cost], $form[transport_type],
 					'".date('Y-m-d H:i:s')."','".$this->session->userdata('employee_id')."')"; 
 			
-			$job = false;
-			switch($form['job_id'])
-			{
-				case 4 : $job = true;break;
-				case 5 : $job = true;break;
-				case 6 : $job = true;break;
-				case 7 : $job = true;break;
-				case 8 : $job = true;break;
-				case 9 : $job = true;break;
-				case 17 : $job = true;break;
-				default : $job = false;break;
-			}	
+			$is_leave = false;
+			$leave_type = 0;
 			
-			//khusus untuk cuti melahirkan dan tahunan
-			if(($form['job_id']==10) || ($form['job_id']==11) || ($form['job_id']==12) || (($job == true) && ($form['hour'] >= 4)) )
-			{
-				$leave = $this->checkLeaveTimesheet($form['timesheetdate']);
-				if(!$leave)
-				{
-					/* Request List
-					*  1 => 'Completed',
-						2 => 'Request to Partner' ,
-						3 => 'Request to HRD',
-						4 => 'Request to Manager',
-						5 => 'Request to Senior',
-						6 => 'Request By Timesheet'
-					**/
-				
-					$data = array (
-						'employee_id' => $this->session->userdata('employee_id'),
-						'leave_approved' => 3, //process
-						'leave_type' => ($form['job_id']==10 ? 4 : 2),
-						'leave_date' => date('Y-m-d'),
-						'leave_date_from' => $timesheetdate , 
-						'leave_date_to' => $timesheetdate,
-						'leave_total' => 1,
-						'leave_range' => $form['timesheetdate'].',',
-						'leave_description' => 'By Timesheet '.$note,
-						'leave_address' => '',
-						'leave_created_by' => $this->session->userdata('employee_id'),
-						'leave_created_date' => date('Y-m-d H:i:s'),
-						'leave_app_user1' => 0,
-						'leave_app_user1_status' => 1,
-						'leave_app_user2' => 0,
-						'leave_app_user2_status' => 1,
-						'leave_app_hrd' => 0,
-						'leave_app_hrd_status' => 1,
-						'leave_app_pic' => 0,
-						'leave_app_pic_status' => 1,
-						'leave_request' => 6,
-						'leave_status' => 6,
-						'leave_source' => 1
-						
-					);
-					$this->db->insert('leaves',$data);
-					$lid = $this->db->insert_id();
-					
-					//leave log
-					$logdata = array(
-						'leave_id' => $lid,
-						'leave_log_date'  => date('Y-m-d H:i:s'),
-						'leave_log_title' => 'Request By Timesheet',
-						'leave_log_desc' => 'Request By Timesheet Automatic By System',
- 					);
-					$this->db->insert('leave_log',$logdata);
-				}
+			/**
+			 * 1 = Cuti Bersama
+			 * 2 = Tahunan
+			 * 3 = Tambahan
+			 * 4 = Khusus (Melahirkan)
+			 * 5 = Izin CUti
+			 */
+			
+			if($form['job_id'] == 500) {
+				$is_leave = true;
+				$leave_type = 1;
+			}else if($form['job_id'] == 713) {
+				$is_leave = true;
+				$leave_type = 5;
+			}else if($form['job_id'] == 10) {
+				$is_leave = true;
+				$leave_type = 4;
+			}else if($form['job_id'] == 11) {
+				$is_leave = true;
+				$leave_type = 2;
+			}else if($form['job_id'] == 12) {
+				$is_leave = true;
+				$leave_type = 2;
 			}
-			//khusus untuk cuti melahirkan dan tahunan
+			
+			if($is_leave) {
+				$data = array (
+					'employee_id' => $this->session->userdata('employee_id'),
+					'leave_type' => $leave_type,
+					'leave_date' => date('Y-m-d'),
+					'leave_date_from' => $timesheetdate ,
+					'leave_date_to' => $timesheetdate,
+					'leave_total' => 1,
+					'leave_range' => $form['timesheetdate'].',',
+					'leave_description' => $note,
+					'leave_address' => '',
+					'leave_created_by' => $this->session->userdata('employee_id'),
+					'leave_created_date' => date('Y-m-d H:i:s'),
+					'leave_app_user1' => 0,
+					'leave_app_user1_status' => 1,
+					'leave_app_user2' => 0,
+					'leave_app_user2_status' => 1,
+					'leave_app_hrd' => 0,
+					'leave_app_hrd_status' => 1,
+					'leave_app_pic' => 0,
+					'leave_app_pic_status' => 1,
+					'leave_request' => 6,
+					'leave_status' => 5, //request 
+					'leave_source' => 1
+				);
+				$id = $this->db->insert_id('leaves',$data);
+				
+				//save log
+				$log = array (
+					'leave_id' => $id,
+					'leave_log_date' => date('Y-m-d H:i:s'),
+					'leave_log_status' => 5,
+					'leave_log_title' =>'By Timesheet',
+					'leave_log_desc' => '',
+					'leave_log_approval_id' => '',
+					'leave_log_approval_name' => '',	
+				);
+				$this->db->insert('leave_log',$log);
+			}
 			
 		}
 		else {
@@ -561,42 +605,41 @@ class timesheetModel extends CI_Model {
 				sysdate			= '".date('Y-m-d H:i:s')."',
 				sysuser			= '".$this->session->userdata('employee_id')."'
 				where timesheetid	= $form[id]";
+			
+			//remove if the same date & employee
+			$this->db->where('leave_date_from',$timesheetdate);
+			$this->db->where('leave_date_to',$timesheetdate);
+			$this->db->where('employee_id',$this->session->userdata('employee_id'));
+			$this->db->delete('leaves');
+			
+			if($form['job_id'] == 500) {
+				$is_leave = true;
+				$leave_type = 1;
+			}else if($form['job_id'] == 713) {
+				$is_leave = true;
+				$leave_type = 5;
+			}else if($form['job_id'] == 10) {
+				$is_leave = true;
+				$leave_type = 4;
+			}else if($form['job_id'] == 11) {
+				$is_leave = true;
+				$leave_type = 2;
+			}else if($form['job_id'] == 12) {
+				$is_leave = true;
+				$leave_type = 2;
+			}
 				
-				
-			//khusus untuk cuti melahirkan dan tahunan
-			if(($form['job_id']==10) || ($form['job_id']==11) || ($form['job_id']==12))
-			{
-				$leave = $this->checkLeaveTimesheet($timesheetdate);
-				if(!$leave)
-				{
-					//delete old leaves
-					$this->db->where('date_from',$timesheetdate);
-					$this->db->where('date_to',$timesheetdate);
-					$this->db->where('leave_status',6);
-					$this->db->where('leave_request',6);
-					$this->db->where('employee_id',$this->session->userdata('employee_id'));
-					$this->db->delete('leaves');
-					
-					/* Request List
-					*  1 => 'Completed',
-						2 => 'Request to Partner' ,
-						3 => 'Request to HRD',
-						4 => 'Request to Manager',
-						5 => 'Request to Senior',
-						6 => 'Request By Timesheet'
-					**/
-				
-					$data = array (
+			if($is_leave) {
+				$data = array (
 						'employee_id' => $this->session->userdata('employee_id'),
-						'leave_approved' => 3, //process
-						'leave_type' => ($form['job_id']==10 ? 4 : 2),
+						'leave_type' => $leave_type,
 						'leave_date' => date('Y-m-d'),
-						'leave_date_from' => $timesheetdate , 
+						'leave_date_from' => $timesheetdate ,
 						'leave_date_to' => $timesheetdate,
 						'leave_total' => 1,
 						'leave_range' => $form['timesheetdate'].',',
-						'leave_description' => 'By Timesheet '.$note,
-						'leave_address' => 'Request By Timesheet',
+						'leave_description' => $note,
+						'leave_address' => '',
 						'leave_created_by' => $this->session->userdata('employee_id'),
 						'leave_created_date' => date('Y-m-d H:i:s'),
 						'leave_app_user1' => 0,
@@ -608,18 +651,29 @@ class timesheetModel extends CI_Model {
 						'leave_app_pic' => 0,
 						'leave_app_pic_status' => 1,
 						'leave_request' => 6,
-						'leave_status' => 6,
+						'leave_status' => 5, //request
 						'leave_source' => 1
-						
-					);
-					$this->db->insert('leaves',$data);
-				}
+				);
+				$id = $this->db->insert_id('leaves',$data);
+			
+				//save log
+				$log = array (
+						'leave_id' => $id,
+						'leave_log_date' => date('Y-m-d H:i:s'),
+						'leave_log_status' => 5,
+						'leave_log_title' =>'By Timesheet',
+						'leave_log_desc' => '',
+						'leave_log_approval_id' => '',
+						'leave_log_approval_name' => '',
+				);
+				$this->db->insert('leave_log',$log);
 			}
-			//khusus untuk cuti melahirkan dan tahunan
 			
-			
-		}//transport_cost = '$form[transport_cost]', [update endro 10-2-2012]
+		}
+		
+		//updat timesheet
 		$this->db->query($sql);		
+		
 		if ( $form['id'] === '0' ) {
 			$id = $this->db->insert_id();
 		} 
@@ -702,7 +756,7 @@ class timesheetModel extends CI_Model {
 	
 	//  saveTimesheetRequest
 	/*-------------------------------------------------------------------------------------*/	
-	public  function saveApproveTimesheet($id) {
+	public function saveApproveTimesheet($id) {
 		$sql = "update timesheet_status
 			set timesheet_approval = 2,
 			dapproval = '".date('Y-m-d H:i:s')."'
@@ -714,32 +768,67 @@ class timesheetModel extends CI_Model {
 			where timesheet_status_id = '$id'";
 		$this->db->query($sql);	
 		
-		
-		/**start leave **/
-		$timesheet = $this->checkAllTimesheet($id);
-		if($timesheet) 
-		{
-			foreach($timesheet as $row)
-			{
-				if(($row['job_id']==10) || ($row['job_id']==11) || ($row['job_id']==12))
-				{
-					//update leaves
-					$sql1 = "UPDATE leaves SET leave_request = 1, leave_status=1, leave_approved=1 WHERE employee_id = ".$row['employee_id']." and (leave_date_from>='".$row['timesheetdate']."'  And leave_date_to<='".$row['timesheetdate']."')  ";
-					$this->db->query($sql1);
-					//update employee
-					$sum1 =  $this->sumLeaveByEmployee($row['employee_id']);
-					if($sum1)
-						$total1 = $sum1['total'];
-					else
-						$total1 = 0;
-						
-					$sql2 = "UPDATE employee SET EmployeeLeaveUse = ".$total1."  WHERE employee_id = ".$row['employee_id'];
-					$this->db->query($sql2);
+		/**
+		 * Synch To Leave
+		 * timesheet to leave
+		*/
+		$timesheet = $this->getAllTimesheetByStatus($id);
+		if($timesheet) {
+			foreach($timesheet as $row) {
+				/**
+				 * 1 = Cuti Bersama
+				 * 2 = Tahunan
+				 * 3 = Tambahan
+				 * 4 = Khusus (Melahirkan)
+				 * 5 = Izin CUti
+				 */
+				$is_leave = false;
+				$leave_type = 0;
+				$form["job_id"] = $row["job_id"];
+					
+				if($form['job_id'] == 500) {
+					$is_leave = true;
+					$leave_type = 1;
+				}else if($form['job_id'] == 713) {
+					$is_leave = true;
+					$leave_type = 5;
+				}else if($form['job_id'] == 10) {
+					$is_leave = true;
+					$leave_type = 4;
+				}else if($form['job_id'] == 11) {
+					$is_leave = true;
+					$leave_type = 2;
+				}else if($form['job_id'] == 12) {
+					$is_leave = true;
+					$leave_type = 2;
 				}
+					
+				if($is_leave) {
+					$data = array('leave_status' => 1);
+					$this->db->where('leave_source',1);
+					$this->db->where('employee_id',$row["employee_id"]);
+					$this->db->where('leave_date_from',$row["timesheetdate"]);
+					$this->db->where('leave_date_to',$row["timesheetdate"]);
+					$update = $this->db->update('leaves',$data);
+					
+					if($update) {
+						//calculate employee leave
+						$sum = $this->sumEmployeeLeave($row["employee_id"]);
+						$balance_total = $sum["balance"];
+						$leave_total = $sum["leave"];
+						/** Update Employee Total **/
+						$eval = array(
+							'EmployeeLeaveTotal' => $balance_total,
+							'EmployeeLeaveUse' => $leave_total	
+						);
+						$this->db->where('employee_id',$row["employee_id"]);
+						$this->db->update('employee',$eval);
+					}
+				}	
 			}
 		}
-		/**end leave**/
 		
+	
 		if ( isset( $_POST['return']) ) {
 			if ( count($_POST['return']) > 0 ) {
 				foreach ($_POST['return'] as $k=>$v) {
@@ -748,24 +837,30 @@ class timesheetModel extends CI_Model {
 						where timesheetid = ".$_POST['return'][$k]; 
 					$this->db->query($sql);		
 					
-					$timesheetx = $this->checkTimesheet($_POST['return'][$k]);
-					if($timesheetx) 
-					{
-						if(($timesheetx['job_id']==10) || ($timesheetx['job_id']==11) || ($timesheetx['job_id']==12))
-						{
-							//update leaves reject
-							$sql3 = "UPDATE leaves SET leave_request = 1, leave_status=1, leave_approved=2 WHERE employee_id = ".$timesheetx['employee_id']." and (leave_date_from >='".$timesheetx['timesheetdate']."'  And leave_date_to <='".$timesheetx['timesheetdate']."')  ";
-							$this->db->query($sql3);
-							//update employee
-							
-							$sum2 =  $this->sumLeaveByEmployee($timesheetx['employee_id']);
-							if($sum2)
-								$total2 = $sum2['total'];
-							else
-								$total2 = 0;
-							$sql4 = "UPDATE employee SET EmployeeLeaveUse2 = ".$total2."  WHERE employee_id = ".$timesheetx['employee_id'];
-							$this->db->query($sql4);
+					$tm = $this->getTimesheetById($_POST['return'][$k]);
+					if($tm) {
+						$eval["leave_status"] = 0;
+						$this->db->where('leave_source',1);
+						$this->db->where('employee_id',$tm["employee_id"]);
+						$this->db->where('leave_date_from',$tm["timesheetdate"]);
+						$this->db->where('leave_date_to',$tm["timesheetdate"]);
+						$update = $this->db->update('leaves',$eval);
+						
+						if($update) {
+						//calculate employee leave
+							$sum = $this->sumEmployeeLeave($tm["employee_id"]);
+							$balance_total = $sum["balance"];
+							$leave_total = $sum["leave"];
+								
+							/** Update Employee Total **/
+							$eval = array(
+									'EmployeeLeaveTotal' => $balance_total,
+									'EmployeeLeaveUse' => $leave_total
+							);
+							$this->db->where('employee_id',$tm["employee_id"]);
+							$this->db->update('employee',$eval);
 						}
+						
 					}
 					
 				}
@@ -809,14 +904,14 @@ class timesheetModel extends CI_Model {
 				foreach ($rows as $k=>$v) {
 				   if (strlen($v['project_title']) > 0 ) {
 					   if (strtolower( substr( $v['job_id'],0,3)) != "999"){
-	   					$sql = "
-	   						update project_job 
-	   						set  ".$v['project_title']."_hour_act = ".$v['ahour']."
-	   						where project_id = ".$v['project_id']."
-	   							and job_id = ".$v['job_id'];
-	   					$this->db->query($sql);		
-	   				}
-   				}
+		   					$sql = "
+		   						update project_job 
+		   						set  ".$v['project_title']."_hour_act = ".$v['ahour']."
+		   						where project_id = ".$v['project_id']."
+		   							and job_id = ".$v['job_id'];
+		   					$this->db->query($sql);		
+	   					}
+   					}
 				}			
 			}
 		}				
@@ -828,7 +923,6 @@ class timesheetModel extends CI_Model {
 				select project_id, sum(hour) ahour, sum(cost) acost
 				from timesheet 
 				where timesheet_approval = 2 and LEFT('job_id', 3) <>  '999'
-
 				group by project_id 
 			) b
 			set
@@ -838,7 +932,7 @@ class timesheetModel extends CI_Model {
 		$this->db->query($sql);		
 	}
 	
-	function getJob($project_id){
+	function getJob($project_id) {
 		$tmp = "<option value=''>- Pilihan -</option>";
 		$sql="select a.job_id, b.job_no , b.job
 				from project_job a 
@@ -913,7 +1007,7 @@ class timesheetModel extends CI_Model {
   
   //  getTimesheetByEmployee add by ram 01-2010
   /*-------------------------------------------------------------------------------------*/	
-	public function getTimesheetByEmployee($data) {
+	function getTimesheetByEmployee($data) {
 		$sql = "select b.project,DATE_FORMAT(a.timesheetdate, '%d/%m/%Y') timesheetdate,
 		 DATE_FORMAT(a.timesheetdate, '%W') hari,
 		 a.hour,a.overtime,a.transport_cost 
@@ -930,7 +1024,7 @@ class timesheetModel extends CI_Model {
 	
 	//  getProject
 	/*-------------------------------------------------------------------------------------*/
-	public  function getAllowance($filter=null, $limit=100, $offset=0) {
+	function getAllowance($filter=null, $limit=100, $offset=0) {
 		$sql = "
 			select  a.id,DATE_FORMAT(date_from,'%d/%m/%Y') as date_from,DATE_FORMAT(date_to,'%d/%m/%Y') as date_to,
 			c.client_name,p.project_no,total_day,total_employee,DATE_FORMAT(date_realization,'%d/%m/%Y') as date_realization,
@@ -955,7 +1049,7 @@ class timesheetModel extends CI_Model {
 	
 	//  getAllowanceDetail
 	/*-------------------------------------------------------------------------------------*/
-	public  function getAllowanceDetail($id) {
+	function getAllowanceDetail($id) {
 		$sql = "
 			select id,p.client_id,a.project_id,a.approval_id,DATE_FORMAT(date_from,'%d/%m/%Y') as date_from,
 			DATE_FORMAT(date_from,'%d/%m/%Y') as date_to,total_employee,total_day,total,
@@ -972,7 +1066,7 @@ class timesheetModel extends CI_Model {
 	 *  
 	 */
 	
-	public function clientListDropdown($value,$id) {
+	function clientListDropdown($value,$id) {
 		$sql = "
 			select * from client c
 			inner join project p on p.client_id = c.client_id
@@ -991,7 +1085,7 @@ class timesheetModel extends CI_Model {
 		return $lists;
 	}
 	
-	public function isHoliday($date) {
+	function isHoliday($date) {
 		$sql = "
 			select * from holiday
 			where holiday_date = '".$date."'
@@ -1005,8 +1099,3 @@ class timesheetModel extends CI_Model {
 	
 }
 
-/* Info of Approval ID
-1 : Waiting | Request
-2 : Done
-Null : Active or not ready Approved
-*/

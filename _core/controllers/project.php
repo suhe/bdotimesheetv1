@@ -399,8 +399,8 @@ class Project extends MY_Controller{
 					$team .= "";
 					$Outsource = $this->projectModel->getOutsourceList($id);
 
-					for ($ii = 0; $ii < count( $Outsource ) ; $ii++)
-						$team .= $Outsource[$ii]['team_description']."<br>";
+					//for ($ii = 0; $ii < count( $Outsource ) ; $ii++)
+						//$team .= $Outsource[$ii]['team_description']."<br>";
 			} else {
 					$team .= $this->htmlEmployeeListView('employee_id[]',$aTeam[$i]['employee_id'],$level) ;  		  
 			}
@@ -448,9 +448,10 @@ class Project extends MY_Controller{
 		$this->load->view('project_view',$this->data);
 	} // END PROJECT VIEW
 
-	function request($id, $msg='')	{
+	public function request($id, $msg='')	{
 		$this->projectModel->requestProject($id);
-		$this->View($id);
+		redirect('project/index',301);
+		//$this->View($id);
 	}
 	
 	function Reviewed($id, $msg='') 	{

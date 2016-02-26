@@ -48,7 +48,12 @@ Class MY_Controller extends CI_Controller {
                 $acl = array( '04000000','07000000', '99000000');
 				break;
 
-			//MIC
+			//Outspirce
+			case '777':
+				//$acl = array( '04000000', '05000000','07000000', '99000000');
+				$acl = array( '04000000','07000000', '99000000');
+				break;
+				//MIC
 			case '03':
 				$acl = array( '02000000', '03000000', '04000000', '07000000','99000000');
                 //$acl = array( '02000000', '03000000','05000000', '07000000', '99000000');
@@ -155,6 +160,10 @@ Class MY_Controller extends CI_Controller {
 					
 					$this->data['li_url']	= "data/jobtype";
 					$this->data['li_label']	= "Job Type";
+					$this->data['menu'] .= $this->load->view('li',$this->data,true);
+					
+					$this->data['li_url']	= "data/outsource";
+					$this->data['li_label']	= "Outsource";
 					$this->data['menu'] .= $this->load->view('li',$this->data,true);
 					
 					$this->data['menu'] .= '</ul>';

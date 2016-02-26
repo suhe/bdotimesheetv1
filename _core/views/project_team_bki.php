@@ -128,13 +128,52 @@
                     </td>
                 </tr>
 		
-		<?php if($this->session->userdata('department_id')==7) { ?>		
+		<?php if($this->session->userdata('department_id') == 7) { ?>		
 		<tr>
                     <td>6</td>
                     <td>Outsource *Optional </td>
                     <td class="p_scents2">
+                    
                     <?php 
-                     if($form_ot){
+                     if($form_aic){
+                        foreach($form_ot as $row){
+                            print  '<span class="team_aic">';
+                            print '<select name="ot[]" style="width:200px">';
+			    print '<option value="0">-</option>';   
+                            foreach($ot as $v){
+                                $selected = '';
+                                if ( $v['employee_id'] == $row['employee_id'] ) {
+                        		      $selected = 'selected ';
+                        	    } 
+                                print '<option '.$selected.' value='.$v['employee_id'].'>'.$v['employeename'].'</option>';    
+                            }    
+                            print '</select>'.$row['department_id'];
+			    if($this->session->userdata('department_id')==7)
+			      print '<a href id='.$row['teamid'].' class="remove_team_ot">&nbsp;&nbsp;<img style="margin-top:3px" src="'.base_url().'images/switch_minus.gif" /></a> <br style="margin-bottom:5px;margin-top:5px"/>';
+                            print '</span>';
+							
+							
+                        }
+                     } else {
+                         print '<select name="ot[]" style="width:200px">';
+			 print '<option value="0">-</option>';  
+                         foreach($ot as $v){
+                                $selected = '';
+                                if ( $v['employee_id'] == $row['employee_id'] ) {
+                        		      $selected = 'selected ';
+                        	    } 
+                                print '<option '.$selected.' value='.$v['employee_id'].'>'.$v['employeename'].'</option>';    
+                         }    
+                         print '</select>';
+                     }
+                     ?>
+	              <?php if($this->session->userdata('department_id') == 7){?>   
+                      <a href="#" id="addScnt2" style="border-top:none;" ><img src="<?=base_url()?>images/switch_plus.gif" /> Add</a>
+                      <br style="margin-bottom:5px;margin-top:5px"/>
+		      <?php } ?>
+		      
+                    <?php 
+                     /*if($form_ot){
                         foreach($form_ot as $row){
                             print  '<span class="team_aic">';
                             print '<input name="ot[]" type="text" value="'.$row['team_description'].'" ';
@@ -144,10 +183,9 @@
 							
 							
                         }
-                     } 
+                     } */
                      ?>
-		      <a href="#" id="addScnt2" style="border-top:none;" ><img src="<?=base_url()?>images/switch_plus.gif" /> Add</a> 
-                      <br style="margin-bottom:5px;margin-top:5px"/>					  
+		      					  
                     </td>
                 </tr>
 		<?php } ?>
@@ -197,8 +235,10 @@
         var i = $('.p_scents2 p').size() + 1;
         
         $('#addScnt2').live('click', function() {
-                $('<span class="xx"><input name="ot[]" type="text" style="width:285px" /><a href class="remScnt">&nbsp;&nbsp;<img style="margin-top:3px" src="<?=base_url()?>images/switch_minus.gif" /></a> <br style="margin-bottom:5px;margin-top:5px"/></span> ').appendTo(scntDiv2);
-                i++;
+        	$('<span class="xx"><select name="ot[]">'+
+                 '<?=$xx2?>'+
+                 '</select><a href class="remScnt">&nbsp;&nbsp;<img style="margin-top:3px" src="<?=base_url()?>images/switch_minus.gif" /></a> <br style="margin-bottom:5px;margin-top:5px"/></span> ').appendTo(scntDiv2);
+                  i++;
                 return false;
         });
 		
@@ -225,6 +265,23 @@
               }  
                 return false;
         });
+
+		$('.remove_team_ot').live('click', function() {
+            var element = $(this); //Save the link in a variable called element
+  		  var del_id = element.attr("id"); //Find the id of the link that was clicked
+       	  var info = 'id=' + del_id;
+            if(confirm("Are You Sure Want to Delete ! ")){
+              $.ajax({
+          		type: "POST",
+          		url : "<?=site_url()?>/project/delete_team/",
+          		data: info,
+          		success: function(){
+          		}
+          	 });
+              $(this).parents(".team_aic").animate({ opacity: "hide" }, "slow");
+            }  
+              return false;
+      });
 		
 	$('.remove_team_ass').live('click', function() {
               var element = $(this); //Save the link in a variable called element

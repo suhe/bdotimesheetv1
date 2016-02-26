@@ -965,7 +965,7 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 	// getUserEmployee
 	/* ------------------------------------------------------------------------------------- */
 	public function getUserEmployee() {
-		$sql = "select employee_id, employeefirstname, employeemiddlename, employeelastname 
+		$sql = "select employee_id, employeefirstname, employeemiddlename, employeelastname ,department_id
 				from employee a order by  employeefirstname, employeemiddlename, employeelastname ";
 		return $this->rst2Array ( $sql );
 	}
@@ -1132,10 +1132,11 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 		from employee e
 		inner join sys_user su on su.employee_id=e.employee_id
 		where su.user_active = 1
-		and e.department_id NOT IN (9996,8,10,19,20,21,22,120,129,134,777)
+		and e.department_id NOT IN (9996,8,10,19,20,21,22,120,129,134)
 		";
 		$department_id == 'KAP TSFR' ? $sql .= " and e.department_id NOT IN (7,18) " : "";
 		$department_id == 'PT BDO KONSULTAN INDONESIA' ? $sql .= " and e.department_id IN (7) " : "";
+		$department_id == 'PT BDO Konsultan Indonesia Outsource' ? $sql .= " and e.department_id IN (777) " : "";
 		$department_id == 'PT BDO MANAJEMEN INDONESIA' ? $sql .= " and e.department_id IN (18) " : "";
 		
 		$sql .= " order by CONCAT(employeefirstname,' ',employeemiddlename,' ',employeelastname) ASC LIMIT 300";

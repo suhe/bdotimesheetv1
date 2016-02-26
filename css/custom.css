@@ -1,22 +1,36 @@
-.sub_nav_off {
-                    position: relative;
-                    background: #ffffff url(&#39;/WebResources/Images/redbar.png&#39;) no-repeat left top;
-                    display: block;
-                    height: 8px;
-                    width: 766px;
-                    font-size: 9pt;
-                    padding: 0;
-                    margin-left: 10px;
-                }
-                .header_buttons {
-                    padding-left: 10px;
-                    padding-right: 10px;
-                    padding-bottom: 10px;
-                }
-                .return_to_website {
-                    float:left;
-                }
-                .replicon_support {
-                    float:right;
-                }
-.customer_login { display: none; }
+.loading-div {
+	background: url("../images/ajax-loader.gif") no-repeat;
+	min-height: 16px;
+	min-width: 16px;
+	display:none
+}
+
+/**.sub_nav_off {
+	position: relative;
+	background: #ffffff url(&#39;/WebResources/Images/redbar.png&#39;)
+		no-repeat left top;
+	display: block;
+	height: 8px;
+	width: 766px;
+	font-size: 9pt;
+	padding: 0;
+	margin-left: 10px;
+}
+
+.header_buttons {
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-bottom: 10px;
+}
+
+.return_to_website {
+	float: left;
+}
+
+.replicon_support {
+	float: right;
+}
+
+.customer_login {
+	display: none;
+}**/

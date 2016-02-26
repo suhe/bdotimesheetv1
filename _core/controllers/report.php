@@ -4151,6 +4151,1034 @@ class Report extends MY_Controller {
 	} // END reportEmployee
 	
 	
+	/* ------------------------------------------------------------------------------------- */
+	// reportOutsource
+	/* ------------------------------------------------------------------------------------- */
+	public function reportOutsource() {
+		$this->getMenu ();
+		$this->data ['form'] ['employee_id'] = $this->input->post ( 'employee_id' );
+		$this->data ['form'] ['date_from'] = $this->input->post ( 'date_from' );
+		$this->data ['form'] ['date_to'] = $this->input->post ( 'date_to' );
+		$this->data ['back'] = $this->data ['site'] . '/report';
+		$this->data ['row'] = "";
+	
+		if (strlen ( $this->data ['form'] ['employee_id'] > 0 )) {
+			$rows = $this->reportModel->getReportEmployeeDate ( $this->data ['form'] );
+				
+			if (count ( $rows ) > 0) {
+				$i = 1;
+				$grandtotal_hour = 0;
+				$grandtotal_work_hour = 0;
+				$grandtotal_overtime = 0;
+				$grandtotal_cost = 0;
+				foreach ( $rows as $k => $v ) {
+					$class = ($i % 2 == 0) ? $class = 'class="odd"' : ' ';
+					$this->data ['row'] .= "
+					<tr $class >
+					<td>$i</td>
+					<td colspan=10><strong>" . $v ['date'] . " - " . $v ['day_name'] . "</strong></td>
+					</tr>";
+						
+					$rows_project = $this->reportModel->getReportEmployeeProject ( $this->data ['form'] ['employee_id'], $v ['date'] );
+						
+					$j = 1;
+					$subtotal_hour = 0;
+					$subtotal_work_hour = 0;
+					$subtotal_overtime = 0;
+					$subtotal_cost = 0;
+					foreach ( $rows_project as $kp => $row ) {
+						$this->data ['row'] .= "
+						<tr $class >
+						<td>$i." . ".$j</td>
+						<td>" . $row ['client_name'] . "</td>
+							<td>" . $row ['project_no'] . "</td>
+							<td>" . $row ['type'] . "</td>
+							<td>" . $row ['job_no'] . "</td>
+							<td>" . $row ['job'] . "</td>
+							<td class=currency>" . $row ['hour'] . "</td>
+							<td class=currency>" . $row ['work_hour'] . "</td>
+							<td class=currency>" . $row ['overtime'] . "</td>
+							<td class=currency>" . number_format ( $row ['cost'], 0 ) . "</td>
+							<td>" . $row ['approval'] . "</td>
+						</tr>";
+						$subtotal_hour += $row ['hour'];
+						$subtotal_work_hour += $row ['work_hour'];
+						$subtotal_overtime += $row ['overtime'];
+						$subtotal_cost += $row ['cost'];
+						$j ++;
+					}
+						
+					$this->data ['row'] .= "
+					<tr>
+						<td colspan=6 class='currency'><b>Total</b></td>
+						<td class=currency><b>" . $subtotal_hour . "</b></td>
+						<td class=currency><b>" . $subtotal_work_hour . "</b></td>
+						<td class=currency><b>" . $subtotal_overtime . "</b></td>
+						<td class=currency><b>" . number_format ( $subtotal_cost, 0 ) . "</b></td>
+						<td></td>
+					</tr>";
+						
+					// counter for grouping days
+					$grandtotal_hour += $subtotal_hour;
+					$grandtotal_work_hour += $subtotal_work_hour;
+					$grandtotal_overtime += $subtotal_overtime;
+					$grandtotal_cost += $subtotal_cost;
+					$i ++;
+				}
+	
+				$this->data ['row'] .= "
+				  <tr>
+					<td colspan=6 class='currency'><b>Grand Total</b></td>
+					<td class=currency><b>" . $grandtotal_hour . "</b></td>
+					<td class=currency><b>" . $grandtotal_work_hour . "</b></td>
+					<td class=currency><b>" . $grandtotal_overtime . "</b></td>
+					<td class=currency><b>" . number_format ( $grandtotal_cost, 0 ) . "</b></td>
+					<td></td>
+				  </tr>";
+			}
+		} else {
+			$this->data ['table'] = array ();
+		}
+	
+		$this->load->view ( 'report_outsource', $this->data );
+	} // END reportOutsource
+	
+	
+	/* ------------------------------------------------------------------------------------- */
+	// reportEmployeeWeek
+	/* ------------------------------------------------------------------------------------- */
+	public function reportOutsourceWeek() {
+		//phpinfo();
+		$this->getMenu ();
+		$this->data ['form'] ['date_from'] = $this->input->post ( 'date_from' );
+		$this->data ['form'] ['date_to'] = $this->input->post ( 'date_to' );
+		$this->data ['form'] ['week'] = $this->input->post ( 'week' );
+		$this->data ['form'] ['week2'] = $this->input->post ( 'week2' );
+		$this->data ['back'] = $this->data ['site'] . '/report';
+		$this->data ['row'] = "";
+		if ($this->data ['form'] ['date_from']) :
+		$arr = array (
+				'wdate_from' => $this->data ['form'] ['date_from'],
+				'wdate_to' => $this->data ['form'] ['date_to'],
+				'wweek' => $this->data ['form'] ['week'],
+				'wweek2' => $this->data ['form'] ['week2']
+		);
+		$this->session->set_userdata ( $arr );
+		endif;
+	
+		$xstart = $this->data ['form'] ['week'];
+		$xend = $this->data ['form'] ['week2'];
+		$xyear = substr ( $this->data ['form'] ['date_from'], 6, 4 );
+	
+		if (! $xstart) {
+			$xstart = 1;
+			$xend = 1;
+			$xyear = date ( 'Y' );
+		}
+	
+		// select year
+		switch ($xyear) {
+			case "2009" :
+				$xmin = 53;
+				break;
+			case "2010" :
+				$xmin = 52;
+				break;
+			case "2011" :
+				$xmin = 52;
+				break;
+			case "2012" :
+				$xmin = 52;
+				break;
+			case "2013" :
+				$xmin = 52;
+				break;
+			case "2014" :
+				$xmin = 52;
+				break;
+			case "2015" :
+				$xmin = 53;
+				break;
+			case "2016" :
+				$xmin = 52;
+				break;
+			case "2017" :
+				$xmin = 52;
+				break;
+			case "2018" :
+				$xmin = 52;
+				break;
+			case "2019" :
+				$xmin = 52;
+				break;
+			case "2020" :
+				$xmin = 53;
+				break;
+			default :
+				$xmin = 52;
+				break;
+		}
+	
+		if (($xstart <= $xend)) {
+			$xstart = $xstart;
+			$xend = $xend;
+		} else {
+			$xstart = $xstart; // 52
+			$xend = $xend + $xmin; // 3 + 52
+		}
+	
+		$this->data ['y'] = $xstart;
+		$this->data ['x'] = $xend;
+	
+		$table = '';
+	
+		if ($this->session->userdata ( 'wdate_from' )) {
+			$department = array (
+					'PT BDO Konsultan Indonesia Outsource',
+			);
+			$x = $this->data ['x'] - $this->data ['y'];
+			foreach ( $department as $key ) {
+				$table .= '<tr>';
+				$table .= '<td colspan="' . (9 + (($x * 9) + 13)) . '" >' . $key . '</td>';
+				$table .= '</tr>';
+	
+				$employee = $this->reportModel->getEmployeeWeek ( $key );
+	
+				$no = 1;
+				foreach ( $employee as $k => $v ) {
+					$table .= '<tr>';
+					$table .= '<td>' . $no . '</td>';
+					$table .= '<td>' . $v ['employeeid'] . '</td>';
+					$table .= '<td >' . $v ['employeename'] . '</td>';
+					$table .= '<td>' . $v ['employeetitle'] . '</td>';
+						
+					$tdk = 0;
+					$tlk = 0;
+					$tss = 0;
+					$ts = 0;
+					$tij = 0;
+					$tc = 0;
+					$tli = 0;
+					$tot = 0;
+					$ttk = 0;
+						
+					for($i = $this->data ['y']; $i <= $this->data ['x']; $i ++) {
+						$week = $i;
+						$year = $xyear;
+	
+						if ($i > $xmin) {
+							// if 53 -52 = 1, 54-52 = 2 ..etc
+							$week = $i - $xmin;
+							$year = $xyear + 1;
+						}
+	
+						$days = array (
+								0 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "1" ) ),
+								1 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "2" ) ),
+								2 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "3" ) ),
+								3 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "4" ) ),
+								4 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "5" ) )
+						);
+	
+						$timesheetdate = '';
+						$dk = 0;
+						$lk = 0;
+						$ss = 0;
+						$s = 0;
+						$sdk = 0;
+						$slk = 0;
+						$ij = 0;
+						$c = 0;
+						$cdk = 0;
+						$clk = 0;
+						$li = 0;
+						$lidk = 0;
+						$lilk = 0;
+						$ot = 0;
+						$tk = 0;
+						$tk_mon = $days [0];
+						$tk_tue = $days [1];
+						$tk_wed = $days [2];
+						$tk_thu = $days [3];
+						$tk_fri = $days [4];
+						$tkdescription = "TK : ";
+	
+						$rows = $this->reportModel->getEmployeeWeekDetails ( $v ['employee_id'], $week, $year );
+	
+						foreach ( $rows as $key => $row ) {
+							switch ($row ["timesheetdate"]) {
+								case $days [0] :
+									$tk_mon = "";
+									break;
+								case $days [1] :
+									$tk_tue = "";
+									break;
+								case $days [2] :
+									$tk_wed = "";
+									break;
+								case $days [3] :
+									$tk_thu = "";
+									break;
+								case $days [4] :
+									$tk_fri = "";
+									break;
+							}
+								
+							// $day_name = date ( "D", strtotime ( $row ['timesheetdate'] ) );
+							// Dalam Kota
+							if (($row ['transport_type'] < 3) && ($row ["JOBTYPE"] != "HRD")) {
+								if ($timesheetdate != $row ['timesheetdate'])
+									$dk += 1;
+							}
+								
+							// Luar Kota
+							if (($row ['transport_type'] == 3) && ($row ['JOBTYPE'] != 'HRD')) {
+								if ($timesheetdate != $row ['timesheetdate'])
+									$lk += 1;
+							}
+								
+							// count of sakit / sick
+							if (($row ['job_id'] == 470)) {
+								$ss += $row ['hour'];
+							}
+								
+							// count of sakit / sick
+							if (($row ['job_id'] <= 3) && ($row ['hour'] >= 4)) {
+								$s += 8;
+							}
+								
+							// count of izin
+							if (($row ["hour"] < 4) and (($row ["job_id"] >= 4 and $row ["job_id"] <= 9) or $row ["job_id"] == 17)) {
+								$ij += $row ["hour"];
+							}
+								
+							// count of cuti
+							if (($row ["hour"] >= 4) and (($row ["job_id"] >= 4 and $row ["job_id"] <= 9) or $row ["job_id"] == 17 or ($row ["job_id"] >= 10 and $row ["job_id"] <= 12))) {
+								$c += 8;
+							}
+								
+							// count of libur
+							if ($row ["job_id"] == 499) {
+								$li += 8;
+							}
+								
+							if ($row ["overtime"] > 0)
+								$ot += $row ["overtime"];
+									
+								$timesheetdate = $row ['timesheetdate'];
+						}
+	
+						$s = ceil ( $s > 0 ? ($s / 8) : 0 );
+						$c = ceil ( $c > 0 ? ($c / 8) : 0 );
+						$li = ceil ( $li > 0 ? ($li / 8) : 0 );
+	
+						$total_week = $dk + $lk + $s + $c + $li;
+						if ($total_week <= 5)
+							$tk = 5 - $total_week;
+							if ($tk < 1)
+								$tkdescription = "";
+								else
+									$tkdescription .= $tk_mon . " " . $tk_tue . " " . $tk_wed . " " . $tk_thu . " " . $tk_fri;
+	
+									$table .= '<td class="center">' . $dk . '</td>';
+									$table .= '<td class="center">' . $lk . '</td>';
+									$table .= '<td class="center">' . $ss . '</td>';
+									$table .= '<td class="center">' . $s . '</td>';
+									$table .= '<td class="center">' . $ij . '</td>';
+									$table .= '<td class="center">' . $c . '</td>';
+									$table .= '<td class="center">' . $li . '</td>';
+									$table .= '<td class="center">' . $tk . '</td>';
+									$table .= '<td class="center">' . $ot . '</td>';
+	
+									$tdk += ($dk > 0 ? $dk : 0);
+									$tlk += ($lk > 0 ? $lk : 0);
+									$tss += ($ss > 0 ? $ss : 0);
+									$ts += ($s > 0 ? $s : 0);
+									$tij += ($ij > 0 ? $ij : 0);
+									$tc += ($c > 0 ? $c : 0);
+									$tli += ($li > 0 ? $li : 0);
+									$tot += ($ot > 0 ? $ot : 0);
+									$ttk += ($tk > 0 ? $tk : 0);
+					}
+						
+					$table .= '<td class="center">' . $tdk . '</td>';
+					$table .= '<td class="center">' . $tlk . '</td>';
+					$table .= '<td class="center">' . $tss . '</td>';
+					$table .= '<td class="center">' . $ts . '</td>';
+					$table .= '<td class="center">' . $tij . '</td>';
+					$table .= '<td class="center">' . $tc . '</td>';
+					$table .= '<td class="center">' . $tli . '</td>';
+					$table .= '<td class="center">' . $ttk . '</td>';
+					$table .= '<td class="center">' . $tot . '</td>';
+					$table .= '';
+					$table .= '</tr>';
+						
+					$table .= '</tr>';
+					$no ++;
+				}
+			}
+		}
+	
+		$this->data ['content_report'] = $table;
+		$this->data ['xmin'] = $xmin;
+		if ($this->data ['form'] ['date_from'])
+			$this->data ['holidays'] = $this->reportModel->getReportHolidayWeek ( $this->data ['form'] );
+			$this->load->view ( 'report_outsource_week', $this->data );
+	}
+	// END reportEmployee
+	
+	
+	/* ------------------------------------------------------------------------------------- */
+	// report Excell
+	/* ------------------------------------------------------------------------------------- */
+	public function reportOutsourceWeekExcel() {
+		/**
+		 * Data *
+		 */
+		$this->data ['form'] ['date_from'] = $this->session->userdata ( 'wdate_from' );
+		$this->data ['form'] ['date_to'] = $this->session->userdata ( 'wdate_to' );
+		$this->data ['form'] ['week'] = $this->session->userdata ( 'wweek' );
+		$this->data ['form'] ['week2'] = $this->session->userdata ( 'wweek2' );
+	
+		$start = $this->data ['form'] ['week'];
+		$end = $this->data ['form'] ['week2'];
+		$xyear = substr ( $this->data ['form'] ['date_from'], 6, 4 );
+	
+		if (! $start) {
+			$start = 0;
+			$end = 0;
+		}
+	
+		// select year
+		switch ($xyear) {
+			case "2009" :
+				$xmin = 53;
+				break;
+			case "2010" :
+				$xmin = 52;
+				break;
+			case "2011" :
+				$xmin = 52;
+				break;
+			case "2012" :
+				$xmin = 52;
+				break;
+			case "2013" :
+				$xmin = 52;
+				break;
+			case "2014" :
+				$xmin = 52;
+				break;
+			case "2015" :
+				$xmin = 53;
+				break;
+			case "2016" :
+				$xmin = 52;
+				break;
+			case "2017" :
+				$xmin = 52;
+				break;
+			case "2018" :
+				$xmin = 52;
+				break;
+			case "2019" :
+				$xmin = 52;
+				break;
+			case "2020" :
+				$xmin = 53;
+				break;
+			default :
+				$xmin = 52;
+				break;
+		}
+	
+		if (($start <= $end)) {
+			$start = $start;
+			$end = $end;
+		} else {
+			$start = $start;
+			$end = $end + $xmin;
+		}
+	
+		$this->load->library ( 'PHPExcel' );
+		$objPHPExcel = new PHPExcel ();
+		$objWriter = new PHPExcel_Writer_Excel2007 ( $objPHPExcel, "Excel2007" );
+		$objPHPExcel->getProperties ()->setTitle ( "Mantap" )->setDescription ( "description" );
+		$objPHPExcel->setActiveSheetIndex ( 0 );
+	
+		$objWorksheet = $objPHPExcel->getActiveSheet ();
+		$objWorksheet->getPageSetup ()->setOrientation ( PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE );
+		$objWorksheet->getPageSetup ()->setPaperSize ( PHPExcel_Worksheet_PageSetup::PAPERSIZE_A5 );
+		$objWorksheet->getPageSetup ()->setScale ( 93 );
+	
+		$border = array (
+				'borders' => array (
+						'allborders' => array (
+								'style' => PHPExcel_Style_Border::BORDER_THIN
+						)
+				)
+		);
+		$fill = array (
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'rotation' => 0,
+				'startcolor' => array (
+						'rgb' => 'CCCCCC'
+				),
+				'endcolor' => array (
+						'argb' => 'CCCCCC'
+				)
+		);
+	
+		$objPHPExcel->getDefaultStyle ()->getFont ()->setName ( 'Trebuchet MS' )->setSize ( 8 );
+	
+		$col = 0;
+		$row = 1;
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col, $row, "OUTSOURCE REPORT BY WEEK" );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col, $row + 0, $col + 3, $row + 0 );
+	
+		$row ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col, $row, 'PERIODE : ' . $this->data ['form'] ['date_from'] . ' to ' . $this->data ['form'] ['date_to'] );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col, $row + 0, $col + 3, $row + 0 );
+	
+		$col = $col;
+		$row += 2;
+	
+		$cc = 3 + ((($end + 1) - $start) * 9) + 5;
+	
+		$desc = "Ket : DK : Dalam Kota Per Hari,LK : Luar Kota Per Hari,S  : Sakit Per Hari,I  : Ijin Per Jam ,C  : Cuti Per Hari & Ijin >=4 jam, L  : Libur Per Hari, OT : Lembur Per Jam";
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col, $row, $desc );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col, $row, $col + $cc, $row );
+	
+		$row ++;
+	
+		$holidays = $this->reportModel->getReportHolidayWeek ( $this->data ['form'] );
+	
+		if (isset ( $holidays )) :
+		$str = '';
+		foreach ( $holidays as $k => $v ) :
+		$str .= $v ['date'] . ':' . $v ['descr'] . ',';
+		endforeach
+		;
+	
+		endif;
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col, $row, 'Libur : ' . $str );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col, $row, $col + $cc, $row );
+	
+		$col = $col;
+		$row += 2;
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col, $row, 'No' );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col )->setWidth ( 5 );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col, $row, $col, $row + 1 );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row + 1 )->applyFromArray ( $border );
+	
+		$objWorksheet->mergeCellsByColumnAndRow ( $col, $row, $col, $row + 1 );
+		$objWorksheet->getStyleByColumnAndRow ( $col, $row + 1 )->getFill ()->applyFromArray ( $fill );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 1, $row, 'Name' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 1 )->setWidth ( 30 );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col + 1, $row, $col + 1, $row + 1 );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row + 1 )->applyFromArray ( $border );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 2, $row, 'NIK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 2 )->setWidth ( 10 );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col + 2, $row, $col + 2, $row + 1 );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row + 1 )->applyFromArray ( $border );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 3, $row, 'Jabatan' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 3 )->setWidth ( 15 );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col + 3, $row, $col + 3, $row + 1 );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row + 1 )->applyFromArray ( $border );
+	
+		$xi = 0;
+		$xo = 9;
+		for($is = $start; $is <= $end; $is ++) :
+			
+		if ($is <= $xmin) {
+			$i = $is;
+		} else {
+			$i = $is - $xmin;
+		}
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi, $row, 'Minggu ' . $i );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col + 4 + $xi, $row, $col + 4 + $xi + $xo, $row );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row )->getFill ()->applyFromArray ( $fill );
+			
+		for($j = 0; $j < ($xo + 1); $j ++) {
+			$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + $j, $row )->applyFromArray ( $border );
+		}
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi, $row + 1, 'DK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 1, $row + 1, 'LK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 1, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 1, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 1, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 1 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 2, $row + 1, 'SS' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 2, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 2, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 2, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 2 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 3, $row + 1, 'S' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 3, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 3, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 3, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 3 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 4, $row + 1, 'I' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 4, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 4, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 4, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 4 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 5, $row + 1, 'C' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 5, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 5, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 5, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 5 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 6, $row + 1, 'L' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 6, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 6, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 6, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 6 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 7, $row + 1, 'TK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 7, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 7, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 7, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 7 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 8, $row + 1, 'OT' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 8, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 8, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 8, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 8 )->setWidth ( 5 );
+			
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 9, $row + 1, 'Keterangan' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 9, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 9, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 9, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 9 )->setWidth ( 50 );
+			
+		$xi += 10;
+		endfor
+		;
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi, $row, 'Total' );
+		$objWorksheet->mergeCellsByColumnAndRow ( $col + 4 + $xi, $row, $col + 4 + $xi + $xo - 1, $row );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row )->getFill ()->applyFromArray ( $fill );
+	
+		for($j = 0; $j < 9; $j ++) {
+			$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + $j, $row )->applyFromArray ( $border );
+		}
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi, $row + 1, 'DK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 1, $row + 1, 'LK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 1, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 1, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 1, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 1 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 2, $row + 1, 'SS' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 2, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 2, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 2, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 2 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 3, $row + 1, 'S' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 3, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 3, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 3, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 3 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 4, $row + 1, 'I' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 4, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 4, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 4, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 4 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 5, $row + 1, 'C' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 5, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 5, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 5, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 5 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 6, $row + 1, 'L' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 6, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 6, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 6, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 6 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 7, $row + 1, 'TK' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 7, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 7, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 7, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 7 )->setWidth ( 5 );
+	
+		$objWorksheet->setCellValueByColumnAndRow ( $col + 4 + $xi + 8, $row + 1, 'OT' );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 8, $row + 1 )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 8, $row + 1 )->applyFromArray ( $border );
+		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 8, $row + 1 )->getFill ()->applyFromArray ( $fill );
+		$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 8 )->setWidth ( 5 );
+	
+		$col = $col;
+		$row += 2;
+	
+		$cc = 3 + ((($end + 1) - $start) * 10) + 9;
+	
+		$department = array (
+			'PT BDO Konsultan Indonesia Outsource',
+		);
+	
+		foreach ( $department as $d => $key ) {
+				
+			$objWorksheet->setCellValueByColumnAndRow ( $col, $row, $key );
+			$objWorksheet->getStyleByColumnAndRow ( $col, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col, $row )->applyFromArray ( $border );
+			$objWorksheet->mergeCellsByColumnAndRow ( $col, $row, $col + $cc, $row );
+				
+			for($j = 0; $j < $cc + 1; $j ++) :
+			$objWorksheet->getStyleByColumnAndRow ( $col + $j, $row )->applyFromArray ( $border );
+			endfor
+			;
+				
+			$row += 1;
+				
+			$no = 1;
+			$employee = $this->reportModel->getEmployeeWeek ( $key );
+				
+			foreach ( $employee as $k => $v ) :
+	
+			$objWorksheet->setCellValueByColumnAndRow ( $col + 0, $row, $no );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 0, $row )->applyFromArray ( $border );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 0, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 0, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+	
+			$objWorksheet->setCellValueByColumnAndRow ( $col + 1, $row, $v ['employeename'] );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row )->applyFromArray ( $border );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 1, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+	
+			$objWorksheet->setCellValueByColumnAndRow ( $col + 2, $row, "'" . $v ['employeeid'] );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row )->applyFromArray ( $border );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 2, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+	
+			$objWorksheet->setCellValueByColumnAndRow ( $col + 3, $row, $v ['employeetitle'] );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row )->applyFromArray ( $border );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+	
+			$xi = 4;
+			$vw = 0;
+			$vl = 0;
+			$vs = 0;
+			$vi = 0;
+			$vc = 0;
+			$vl = 0;
+			$vtk = 0;
+			$vo = 0;
+	
+			$tdk = 0;
+			$tlk = 0;
+			$tss = 0;
+			$ts = 0;
+			$tij = 0;
+			$tc = 0;
+			$tli = 0;
+			$tot = 0;
+			$ttk = 0;
+	
+			for($is = $start; $is <= $end; $is ++) :
+				
+			$week = $is;
+			$year = $xyear;
+				
+			if ($is > $xmin) {
+				$week = $is - $xmin;
+				$year = $xyear + 1;
+			}
+				
+			$days = array (
+					0 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "1" ) ),
+					1 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "2" ) ),
+					2 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "3" ) ),
+					3 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "4" ) ),
+					4 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "5" ) ),
+			);
+				
+			$timesheetdate = '';
+			$dk = 0;
+			$lk = 0;
+			$ss = 0;
+			$s = 0;
+			$ij = 0;
+			$c = 0;
+			$li = 0;
+			$ot = 0;
+			$tk = 0;
+			$tk_mon = $days [0];
+			$tk_tue = $days [1];
+			$tk_wed = $days [2];
+			$tk_thu = $days [3];
+			$tk_fri = $days [4];
+			$description = "";
+			$tkdescription = "TK :";
+			$ldescription = "Libur :";
+			$cdescription = "Cuti :";
+			$idescription = "Izin :";
+			$sdescription = "Sakit :";
+				
+			$timesheet = $this->reportModel->getEmployeeWeekDetails ( $v ['employee_id'], $week, $year );
+				
+			foreach ( $timesheet as $key => $val ) {
+				switch ($val ["timesheetdate"]) {
+					case $days [0] :
+						$tk_mon = "";
+						break;
+					case $days [1] :
+						$tk_tue = "";
+						break;
+					case $days [2] :
+						$tk_wed = "";
+						break;
+					case $days [3] :
+						$tk_thu = "";
+						break;
+					case $days [4] :
+						$tk_fri = "";
+						break;
+				}
+	
+				// Dalam Kota
+				if (($val ['transport_type'] < 3) && ($val ["JOBTYPE"] != "HRD")) {
+					if ($val ['timesheetdate'] != $timesheetdate)
+						$dk += 1;
+				}
+	
+				// Luar Kota
+				if (($val ['transport_type'] == 3) && ($val ['JOBTYPE'] != 'HRD')) {
+						
+					if ($val ['timesheetdate'] != $timesheetdate)
+						$lk += 1;
+				}
+	
+				// count of izin
+				if (($val ["job_id"] == 470)) {
+					$ss += $val ["hour"];
+				}
+	
+				// count of sakit / sick
+				if (($val ['job_id'] <= 3) && ($val ['hour'] >= 4)) {
+					$s += 8;
+					$sdescription .= $val ["timesheetdate"] . ", ";
+				}
+	
+				// count of izin
+				if (($val ["hour"] < 4) and (($val ["job_id"] >= 4 and $val ["job_id"] <= 9) or $val ["job_id"] == 17)) {
+					$ij += $val ["hour"];
+					$idescription .= $val ["timesheetdate"] . ", ";
+				}
+	
+				// count of cuti
+				if (($val ["hour"] >= 4) and (($val ["job_id"] >= 4 and $val ["job_id"] <= 9) or $val ["job_id"] == 17 or ($val ["job_id"] >= 10 and $val ["job_id"] <= 12))) {
+					$c += 8;
+					$cdescription .= $val ["timesheetdate"] . ", ";
+				}
+	
+				// count of libur
+				if ($val ["job_id"] == 499) {
+					$li += 8;
+					$ldescription .= $val ["timesheetdate"] . ", ";
+				}
+	
+				if ($val ["overtime"] > 0)
+					$ot += $val ["overtime"];
+	
+					$timesheetdate = $val ['timesheetdate'];
+			}
+				
+			$s = ceil ( $s > 0 ? ($s / 8) : 0 );
+			$c = ceil ( $c > 0 ? ($c / 8) : 0 );
+			$li = ceil ( $li > 0 ? ($li / 8) : 0 );
+				
+			$total_week = $dk + $lk + $s + $c + $li;
+			$tk = 0;
+			if ($total_week < 5) {
+				$tk = 5 - $total_week;
+				$tkdescription .=$tk_mon ?  $tk_mon.", " : " ";
+				$tkdescription .=$tk_tue ?  $tk_tue.", " : " ";
+				$tkdescription .=$tk_wed ?  $tk_wed.", " : " ";
+				$tkdescription .=$tk_thu ?  $tk_thu.", " : " ";
+				$tkdescription .=$tk_fri ?  $tk_fri.", " : " ";
+			}
+				
+			if ($s > 0)
+			$description .= $sdescription." ";
+			if ($ij > 0)
+				$description .= $idescription." ";
+			if ($c > 0)
+				$description .= $cdescription." ";
+			if ($li > 0)
+				$description .= $ldescription." ";
+			if ($tk > 0)
+				$description .= $tkdescription." ";
+									
+			//if ($description)
+				//$description = substr($description,0,(strlen($description) -1));
+									
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $dk );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $lk );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $ss );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $s );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $ij );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $c );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $li );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tk );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $ot );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+									
+			$xi ++;
+			$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $description );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_LEFT );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setVertical ( PHPExcel_Style_Alignment::VERTICAL_TOP );
+			$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->getAlignment ()->setWrapText ( true );
+									
+			$xi ++;
+									
+			$tdk += ($dk > 0 ? $dk : 0);
+			$tlk += ($lk > 0 ? $lk : 0);
+			$tss += ($ss > 0 ? $ss : 0);
+			$ts += ($s > 0 ? $s : 0);
+			$tij += ($ij > 0 ? $ij : 0);
+			$tc += ($c > 0 ? $c : 0);
+			$tli += ($li > 0 ? $li : 0);
+			$tot += ($ot > 0 ? $ot : 0);
+			$ttk += ($tk > 0 ? $tk : 0);
+		endfor;
+	
+		$xi = $xi;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tdk );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tlk );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tss );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $ts );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tij );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tc );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tli );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tk );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$xi ++;
+		$objWorksheet->setCellValueByColumnAndRow ( $col + $xi, $row, $tot );
+		$objWorksheet->getStyleByColumnAndRow ( $col + $xi, $row )->applyFromArray ( $border );
+	
+		$row ++;
+		$no ++;
+		endforeach;
+		$row ++;
+		}
+	
+		$file = "./media/OutsourceWeek.xlsx";
+		$objWriter->save ( $file );
+		redirect ( '../media/OutsourceWeek.xlsx' );
+	}
+	
 	
 	
 }	

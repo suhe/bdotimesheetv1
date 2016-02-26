@@ -110,7 +110,7 @@ if ($this->session->userdata('acl')==='01') {
 			}
 
 			$status = '';
-			$link = "<a href='$site/project/Edit/$v[project_id]'>[ edit ]</a>";
+			$link = "<a href='".$site."project/Edit/$v[project_id]'>[ edit ]</a>";
 			
 			
 			
@@ -168,8 +168,8 @@ if ($this->session->userdata('acl')==='01') {
 						<span style="display:inline-block; width:100px; text-align:center;"> Hal. #<?=$pg['c']?>/<?=$pg['l']?> </span>
 						<a href="<?=$site?>/project/index/3/<?=$pg['n']?>" />Next</a>
 						<a href="<?=$site?>/project/index/3/<?=$pg['l']?>" />Last</a>
-						<span style="float:right;text-align:right;"><a href="<?=$site?>/project/Edit/0" > [ ADD NEW ] </a></span>
-						<span style="float:right;text-align:right;"><a href="<?=$site?>/project/Refresh/0" > [ REFRESH ] </a></span>
+						<span style="float:right;text-align:right;"><a href="<?=base_url()?>project/Edit/0" > [ ADD NEW ] </a></span>
+						<span style="float:right;text-align:right;"><a href="<?=base_url()?>project/Refresh/0" > [ REFRESH ] </a></span>
 
 					</div>
 					<table class="grid">
@@ -207,7 +207,7 @@ if ( $table ) {
 		if ($i % 2 == 0) $class= 'class="odd"';
 		
 		$status = '';
-		$link = "<a href='$site/project/Edit/$v[project_id]'>[ edit ]</a>";
+		$link = "<a href='".$site."project/Edit/$v[project_id]'>[ edit ]</a>";
 		if ($v['project_approval']==1){
 			$status 	= 'Waiting for Review';	
 		}

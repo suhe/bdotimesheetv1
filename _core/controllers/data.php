@@ -108,6 +108,121 @@ class Data extends MY_Controller{
 	
 	
 	/*-------------------------------------------------------------------------------------*/
+	//  Outsource Khusus PT BDO Konsultan Indonesia
+	/*-------------------------------------------------------------------------------------*/
+	function outsource($type=1, $pg=1, $limit=0) 	{
+		$this->getMenu();
+		$form = array();
+		$form['group'] = "Outsource"; //outsource department
+		if($type==1) {
+			$this->session->unset_userdata('nik');
+			$this->session->unset_userdata('nickname');
+			$this->session->unset_userdata('position');
+			$this->session->unset_userdata('group');
+		}
+		elseif($type==2) {
+			$this->session->unset_userdata('nik');
+			$this->session->unset_userdata('nickname');
+			$this->session->unset_userdata('position');
+			$this->session->unset_userdata('group');
+				
+			if($this->input->post('nik')) 			$form['nik']		= $this->input->post('nik');
+			if($this->input->post('nickname'))		$form['nickname']	= $this->input->post('nickname');
+			if($this->input->post('position'))		$form['position']	= $this->input->post('position');
+			$this->session->set_userdata($form);
+		}
+	
+		if($this->session->userdata('nik')) 		$form['nik']		= $this->session->userdata('nik');
+		if($this->session->userdata('nickname'))	$form['nickname']	= $this->session->userdata('nickname');
+		if($this->session->userdata('position')) 	$form['position']	= $this->session->userdata('position');
+		
+		if($limit) {
+			$this->session->set_userdata('rpp', $limit);
+			$this->rpp = $limit;
+		}
+		$limit				 = $limit ? $limit : $this->rpp;
+		$totalRow			 = $this->dataModel->getEmployee($form);
+		$this->data['pg']	 = $this->setPaging($totalRow, $pg, $limit);
+		$this->data['table'] = $this->dataModel->getEmployee($form, $limit, $this->data['pg']['o']);
+		$this->load->view('outsource',$this->data);
+	} // END user
+	
+	/*-------------------------------------------------------------------------------------*/
+	//  employeeEdit
+	/*-------------------------------------------------------------------------------------*/
+	function outsourceEdit($id, $msg='') 	{
+		$this->getMenu() ;
+		$this->data['form']	= $this->dataModel->getEmployeeDetail($id);
+		if ( count($this->data['form'])	== 0 ) {
+			$this->data['form']['employeeid']	= $this->dataModel->getLastNikEmployee();
+			$this->data['form']['message']		= '';
+			$this->data['form']['employee_id']	= 0;
+			$this->data['form']['approval_id']	= 0;
+			$this->data['form']['employeehiredate']	= date('d/m/Y');
+			$this->data['form']['employeestatus']	= '';
+			$this->data['form']['employeefirstname']	= '';
+			$this->data['form']['project_title']	= '';
+			$this->data['form']['user_active']	= '';
+			$this->data['form']['passtext']	= '';
+			$this->data['form']['employeemiddlename']	= '';
+			$this->data['form']['employeelastname']		= '';
+			$this->data['form']['employeenickname']		= '';
+			$this->data['form']['employeetitle']		= '';
+			$this->data['form']['employeeemail']		= '';
+			$this->data['form']['department_id']		= '';
+		}
+		$this->data['back'] = $this->data['site'] .'/data/outsource';
+		$this->data['form']['message']=$msg;
+		$this->load->view('outsource_edit',$this->data);
+	} // END employeeEdit
+	
+	
+	/*-------------------------------------------------------------------------------------*/
+	//  employeeUpdate
+	/*-------------------------------------------------------------------------------------*/
+	function outsourceUpdate() 	{
+		$this->getMenu() ;
+		$form['employee_id']		= $this->input->post('employee_id');
+		$form['employeehiredate']	= $this->input->post('hiredate');
+		$form['employeestatus']	    = $this->input->post('status');
+		$form['approval_id']		= $this->input->post('approval_id');
+		$form['employeefirstname']	= $this->input->post('employeefirstname');
+		$form['employeemiddlename']	= $this->input->post('employeemiddlename');
+		$form['employeelastname']	= $this->input->post('employeelastname');
+		$form['employeenickname']	= $this->input->post('employeenickname');
+		$form['employeetitle']		= $this->input->post('employeetitle');
+		$form['project_title']		= $this->input->post('project_title');
+		$form['passtext']			= $this->input->post('passtext');
+		$form['user_active']		= $this->input->post('user_active');
+		$form['employeeid']			= $this->input->post('employeeid');
+		$form['employeeemail']		= $this->input->post('employeeemail');
+		$form['department_id']		= $this->input->post('department_id');
+	
+		$this->dataModel->saveOutsource($form);
+	} // END outsourceUpdate
+	
+
+	/*-------------------------------------------------------------------------------------*/
+	//  employeeRemove
+	/*-------------------------------------------------------------------------------------*/
+	function outsourceRemove($id) 	{
+		$this->data['form']	= $this->dataModel->getEmployeeDetail($id);
+		if(isset($this->data['form'])) {
+			if($this->data['form']["department_id"] == 777) {
+				//employee
+				$this->db->where('employee_id',$id);
+				$this->db->delete('employee');
+				//sysuser
+				$this->db->where('employee_id',$id);
+				$this->db->delete('sys_user');
+			}
+		}
+		redirect($this->input->server('HTTP_REFERER'),301);
+	} // END outsourceRemove
+	
+	
+	
+	/*-------------------------------------------------------------------------------------*/
 	//  department
 	/*-------------------------------------------------------------------------------------*/
 	function department( $department_id=0, $msg='') 	{

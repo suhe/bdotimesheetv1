@@ -9,6 +9,7 @@
 		<link rel="stylesheet" type="text/css" href="<?=$base_url ?>/css/layout.css" media="screen" />
 		<link rel="stylesheet" type="text/css" href="<?=$base_url ?>/css/nav_blue.css" media="screen" />
 		<link rel="stylesheet" type="text/css" href="<?=$base_url ?>/css/jquery.datepick.css?1" media="screen" />
+		<link rel="stylesheet" type="text/css" href="<?=$base_url ?>/css/custom.css" media="screen" />
 		<!--[if IE 6]><link rel="stylesheet" type="text/css" href="<?=$base_url ?>/css/ie6.css" media="screen" /><![endif]-->
 		<!--[if gte IE 7]><link rel="stylesheet" type="text/css" href="<?=$base_url ?>/css/ie.css" media="screen" /><![endif]-->
 		<script type="text/javascript" src="<?=$base_url ?>/js/jquery-1.3.2.min.js"></script>

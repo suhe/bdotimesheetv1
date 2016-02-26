@@ -310,7 +310,7 @@ class projectModel extends CI_Model {
 	
 	
 	public  function saveProjectStructureTeam($form) {
-		if($this->session->userdata('department_id')==7)
+		if($this->session->userdata('department_id') == 7)
 			$this->saveProjectBKITeam($form['project_id'],$form);
 		else
 			$this->saveProjectTeam($form['project_id'],$form);
@@ -334,9 +334,11 @@ class projectModel extends CI_Model {
 		//AIC
 		if($total_aic){
 			for($i=0;$i<$total_aic;$i++){
-				$employee = $aic[$i];
-				$auditor = $this->approvaldepartment($employee);
-				$this->projectModel->saveProjectStructure(0,0,$project_id,$employee,$this->approvaluser($employee),'041',0);
+				if(strlen($aic[$i]) >=3 ) {
+					$employee = $aic[$i];
+					$auditor = $this->approvaldepartment($employee);
+					$this->projectModel->saveProjectStructure(0,0,$project_id,$employee,$this->approvaluser($employee),'041',0);
+				}
 			}
 		}
 		
@@ -344,7 +346,7 @@ class projectModel extends CI_Model {
 		if($total_ot){
 			for($i=0;$i<$total_ot;$i++){
 				$employee = $ot[$i];
-				$this->projectModel->saveProjectStructure(0,0,$project_id,77777,$this->session->userdata('employee_id'),'777',1,$employee);
+				$this->projectModel->saveProjectStructure(0,0,$project_id,$employee,$this->approvaluser($employee),'777',1);
 			}
 		}
 		
@@ -1213,7 +1215,7 @@ class projectModel extends CI_Model {
 	
 	//  getEmployee
 	/*-------------------------------------------------------------------------------------*/
-	public  function getOutsourceList($project_id=null ) {
+	public  function getOutsourceListBackup($project_id=null ) {
 
   
 		/*$sql = "
@@ -1223,6 +1225,20 @@ class projectModel extends CI_Model {
 			order by a.employeefirstname, a.employeemiddlename, a.employeelastname";*/
 		$sql = "select team_description from project_team b where b.project_id = $project_id and b.project_title in ('777')";	
 
+		return $this->rst2Array($sql) ;
+	}
+	
+	//  getEmployee
+	/*-------------------------------------------------------------------------------------*/
+	public  function etOutsourceLis($project_id=null ) {
+	
+	
+		$sql = "
+		select a.employee_id, a.employeefirstname, a.employeemiddlename, a.employeelastname, a.name
+		from employee a inner join project_team b on a.employee_id = b.employee_id
+		where 1=1  and b.project_id = $project_id and b.project_title in ('777')
+		order by a.employeefirstname, a.employeemiddlename, a.employeelastname";
+	
 		return $this->rst2Array($sql) ;
 	}
 
@@ -1371,7 +1387,7 @@ class projectModel extends CI_Model {
 		if ($acl=='mic') $whereClause = "  and project_title in( '03','02')";
 		if ($acl=='aic') $whereClause = "  and project_title in('03','041','042','043','044','441')";
 		if ($acl=='ass') $whereClause = "  and project_title in('03','041','042','043','044','441')";
-		if ($acl=='ot')  $whereClause = "  and e.department_id=777 ";
+		if ($acl=='ot')  $whereClause = "  and project_title in('777') ";
         $sql = " SELECT e.employee_id,CONCAT(e.employeefirstname,' ',e.employeemiddlename,' ',e.employeelastname) as employeename ,e.department_id,CONCAT('- Group :',d.department) as department
                  FROM employee e 
                  INNER JOIN sys_user su ON su.employee_id=e.employee_id

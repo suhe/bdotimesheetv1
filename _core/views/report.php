@@ -8,7 +8,12 @@ $this->load->view('site_header');
 	<table align="center">
 	<tr><td>
 				<table align=center>
-<?php 
+<?php if(($this->session->userdata('acl') == '01' && $this->session->userdata('department_id') == 7 ) || ($this->session->userdata('acl') == '03' && $this->session->userdata('department_id') == 7 )) { ?>
+	<tr><td><a href="<?=base_url()?>report/reportOutsource/">- Outsource Detail Report</td></tr>
+	<tr><td><a href="<?=base_url()?>report/reportOutsourceWeek/">- Outsource Report by Week</td></tr>
+	
+<?php } ?>				
+<?php   
 if ($this->session->userdata('acl') === '01' || $this->session->userdata('acl') === '008' || $this->session->userdata('acl') === '009' || $this->session->userdata('acl') === '011' ||  $this->session->userdata('acl') === '02')
 {
 ?>	

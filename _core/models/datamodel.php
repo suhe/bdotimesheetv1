@@ -66,10 +66,11 @@ class dataModel extends CI_Model {
 	/*-------------------------------------------------------------------------------------*/
 	//  getUserEmployee
 	/*-------------------------------------------------------------------------------------*/
-	public  function getUserEmployee() {
+	public  function getUserEmployee($filter = array()) {
 		$sql = "select a.employee_id,a.employeefirstname,a.employeemiddlename,a.employeelastname 
 			from employee a inner join sys_user su on su.employee_id=a.employee_id
 			where su.user_active=1
+			".(isset($filter["department_id"]) ? "and department_id = ".$filter["department_id"] : "")." 	
 			order by  a.employeefirstname,a.employeemiddlename,a.employeelastname";
 		return $this->rst2Array($sql);
 	}
@@ -77,9 +78,11 @@ class dataModel extends CI_Model {
 	//  getEmployeeDetail
 	/*-------------------------------------------------------------------------------------*/
 	public  function getEmployeeDetail($employee_id) {
-		$sql = "select employee_id, approval_id,  project_title, employeefirstname,employeemiddlename,employeelastname,
+		$sql = "select employee.employee_id, approval_id,  project_title, employeefirstname,employeemiddlename,employeelastname,sys_user.user_active,passtext,
 				employeenickname,employeetitle,employeeid,DATE_FORMAT(employeehiredate,'%d/%m/%Y') as employeehiredate,employeestatus,employeeemail,department_id,employeestatus
-				from employee  where employee_id  ='$employee_id'";
+				from employee 
+				left join sys_user on sys_user.employee_id = employee.employee_id
+				where employee.employee_id  ='$employee_id'";
 		return $this->rst2Array($sql,10);
 	}
 	//  getEmployeeDepartment
@@ -129,6 +132,71 @@ class dataModel extends CI_Model {
 		}
 		redirect('/data/employeeEdit/'.$id .'/SAVED');
 	}	
+	
+	//  saveOutsource
+	/*-------------------------------------------------------------------------------------*/
+	public  function saveOutsource($form) {
+		$date = substr($form['employeehiredate'],6,4).'-'.substr($form['employeehiredate'],3,2).'-'.substr($form['employeehiredate'],0,2);
+		
+		if ( $form['employee_id'] === '0' ) {
+			$sql = "insert into employee ( employeeid, approval_id,  project_title, employeefirstname, employeemiddlename,
+			employeelastname, employeenickname,employeetitle,employeeemail, department_id,employeehiredate,employeestatus,
+			sysdate, sysuser)
+			values ('$form[employeeid]','$form[approval_id]','$form[project_title]', '$form[employeefirstname]' , '$form[employeemiddlename]',
+			'$form[employeelastname]', '$form[employeenickname]','$form[employeetitle]',
+			'$form[employeeemail]','$form[department_id]','$date',$form[employeestatus],'".date('Y-m-d H:i:s')."','".$this->session->userdata('user_id')."')";
+		}
+		else {
+			$sql = "update employee set employeeid ='$form[employeeid]',
+			project_title= '$form[project_title]' ,
+			approval_id= '$form[approval_id]' ,
+			employeehiredate	= '$date',
+			employeestatus	    = '$form[employeestatus]' ,
+			employeefirstname	= '$form[employeefirstname]' ,
+			employeemiddlename	= '$form[employeemiddlename]',
+			employeelastname	= '$form[employeelastname]',
+			employeenickname	= '$form[employeenickname]',
+			employeetitle		= '$form[employeetitle]',
+			employeeemail		= '$form[employeeemail]',
+			department_id		= '$form[department_id]',
+			sysuser				= '".$this->session->userdata('user_id')."',
+					sysdate				= '".date('Y-m-d H:i:s')."'
+						where employee_id = $form[employee_id]";
+		}
+		$this->db->query($sql);
+		
+		/**
+		 * Sys User Update
+		 */
+		if ( $form['employee_id'] === '0' ) {
+			$id = $this->db->insert_id();
+			
+			//update user
+			$this->data = array(
+				'employee_id' => $id,
+				'acl' => '777',
+				'user_active' => $form['user_active'],	
+				'passtext' => $form['passtext'],	
+				'sysuser' => $this->session->userdata('employee_id'),
+				'sysdate' => date('Y-m-d H:i:s')
+			);
+			$this->db->insert('sys_user',$this->data);
+			
+		}
+		else {
+			$id = $form['employee_id'];
+			$this->data = array(
+					'acl' => '777',
+					'user_active' => $form['user_active'],
+					'sysuser' => $this->session->userdata('employee_id'),
+					'sysdate' => date('Y-m-d H:i:s')
+			);
+			$this->db->where('employee_id',$form["employee_id"]);
+			$this->db->update('sys_user',$this->data);
+		}
+		redirect('/data/outsourceEdit/'.$id .'/SAVED');
+	}
+	
 	
 	//  getDepartment
 	/*-------------------------------------------------------------------------------------*/
