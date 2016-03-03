@@ -690,5 +690,17 @@ class Timesheet extends MY_Controller{
 		
 		redirect($this->input->server('HTTP_REFERER'),301);
 	}
+	
+	public function isLeave() {
+		$date = $this->input->post('timesheetdate');
+		$row = $this->timesheetModel->getRowLeaveByDate($date);
+		if(count($row)>0 && $date) {
+			$result = array("allow" => false,"message" => $row["leave_description"]);
+		}else {
+			$result = array("allow" => true);
+		}
+		
+		echo json_encode($result);
+	}
     
 }	

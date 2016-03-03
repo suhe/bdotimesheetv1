@@ -112,7 +112,7 @@ if ( strlen( $form['timesheetdate']) >0 ) {
 		</tr>
 		<tr>
 			<td></td>
-			<td><div class="ff3 UILinkButton">
+			<td><div class="ff3 UILinkButton" id="div-submit">
 					<input type="submit"  id="submit"  value="Save" class="ff3 UILinkButton_A"/>
 					<div class="UILinkButton_RW">
 						<div class="UILinkButton_R"/></div>
@@ -201,7 +201,7 @@ if ( strlen( $form['timesheetdate']) >0 ) {
 		</tr>
 		<tr>
 			<td></td>
-			<td><div class="ff3 UILinkButton">
+			<td><div class="ff3 UILinkButton" >
 					<input type="submit"  id="submit"  value="View" class="ff3 UILinkButton_A"/>
 					<div class="UILinkButton_RW">
 						<div class="UILinkButton_R"/></div>
@@ -337,19 +337,47 @@ if ( count( $table) > 0 ) {
 function getWeek(value, xdate, inst) {
 	nWeek = $.datepick.iso8601Week(xdate);
 	nYear = new Date(xdate).getFullYear();
-	//var str = "Hello world!";
-	//var res = str.substring(1,4); 
 	nMonth = value.substring(3,5); 
 	if((nMonth=='12') && (nWeek=='1')){
 		nYear=nYear+1;
 	}
-	//alert(nWeek);
+	
 	$("#week").val(nWeek);
-	//$("#year").val(new Date(xdate).getFullYear());
 	$("#year").val(nYear);
 }
 
 $(function () {
+	/** Update Timesheet
+	* Disabled date when leave is fill
+	**/
+	var timesheetdate = $('#timesheetdate').val();
+	isLeave(timesheetdate);
+	
+	function isLeave(args) {
+		var arg = args;
+		$.ajax({
+			type:'POST',
+			data:{timesheetdate:arg},
+			dataType : 'json',
+			url:'<?=base_url()?>timesheet/isLeave',
+			success:function(response) {
+				if(response.allow == false) {
+					alert("Date of " + arg + ", is leave, " + response.message);
+					$('#timesheetdate').focus();
+					$('#div-submit').hide("slow");
+				} else {
+					$('#div-submit').show("slow");
+				}
+			}
+		});
+	}
+	
+	$('#timesheetdate').change( function (e) {
+		e.preventDefault();
+		var timesheetdate = $(this).val();
+		isLeave(timesheetdate);
+	});
+	
 	$('a.hapus').click( function (e) {
 		retval = window.confirm('Are you sure delete this record ?');
 		//alert('deleted flag ' + retval + ';value' + this.id);
@@ -381,7 +409,7 @@ $(function () {
 	$('#project_id').change(function() {
 		var post = [{name:'ts', value: new Date().getTime()},
 						{name:'project_id', value:$('#project_id').val()}];
-		$.post('<?=$site ?>/timesheet/getJob/',post,function(response){
+		$.post('<?=base_url() ?>timesheet/getJob/',post,function(response){
 			var projx = response.split('|');
 			$('#job_id').html(projx[0]);
 			$('#info_x').html(projx[1]);
@@ -390,6 +418,7 @@ $(function () {
 	
 
 	$('#submit').click( function (e) {
+		var timesheetdate = $.trim($('#timesheetdate').val()); 
 		var project_id = $.trim($('#project_id').val()); 
 		var job_id = $.trim( $('#job_id').val());
 		var client_name = $.trim( $('#client_name_description').val());
@@ -398,7 +427,8 @@ $(function () {
 		var transport_type = $.trim( $('#transport_type').val()); //ram
         var cost = $.trim( $('#cost').val());
 		var errSubmit = '';
-        
+		
+		
 		if (project_id.length == 0) {
 			$('#project_id').focus();
 			errSubmit += 'Project must be fill out \n';	

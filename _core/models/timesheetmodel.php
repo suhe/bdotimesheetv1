@@ -1097,5 +1097,12 @@ class timesheetModel extends CI_Model {
 			return false;
 	}
 	
+	public function getRowLeaveByDate($date) {
+		$this->db->like('leave_range', $date);
+		$this->db->where('employee_id',$this->session->userdata('employee_id'));
+		$q = $this->db->get('leaves');
+		return $q->row_array();
+	}
+	
 }
 
