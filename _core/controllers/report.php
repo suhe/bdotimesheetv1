@@ -1377,6 +1377,7 @@ class Report extends MY_Controller {
 		$this->data ['x'] = $xend;
 		
 		$table = '';
+		$xcol = 9;
 		
 		if ($this->session->userdata ( 'wdate_from' )) {
 			$department = array (
@@ -1387,7 +1388,7 @@ class Report extends MY_Controller {
 			$x = $this->data ['x'] - $this->data ['y'];
 			foreach ( $department as $key ) {
 				$table .= '<tr>';
-				$table .= '<td colspan="' . (9 + (($x * 9) + 13)) . '" >' . $key . '</td>';
+				$table .= '<td colspan="' . ($xcol + (($x * $xcol) + 13)) . '" >' . $key . '</td>';
 				$table .= '</tr>';
 				
 				$employee = $this->reportModel->getEmployeeWeek ( $key );
@@ -1691,7 +1692,7 @@ class Report extends MY_Controller {
 		$col = $col;
 		$row += 2;
 		
-		$cc = 3 + ((($end + 1) - $start) * 9) + 5;
+		$cc = 3 + ((($end + 1) - $start) * 8) + 5;
 		
 		$desc = "Ket : DK : Dalam Kota Per Hari,LK : Luar Kota Per Hari,S  : Sakit Per Hari,I  : Ijin Per Jam ,C  : Cuti Per Hari & Ijin >=4 jam, L  : Libur Per Hari, OT : Lembur Per Jam";
 		
@@ -1754,8 +1755,9 @@ class Report extends MY_Controller {
 		$objWorksheet->mergeCellsByColumnAndRow ( $col + 3, $row, $col + 3, $row + 1 );
 		$objWorksheet->getStyleByColumnAndRow ( $col + 3, $row + 1 )->applyFromArray ( $border );
 		
+		$xcol = 9;
 		$xi = 0;
-		$xo = 9;
+		$xo = $xcol;
 		for($is = $start; $is <= $end; $is ++) :
 			
 			if ($is <= $xmin) {
@@ -1833,7 +1835,7 @@ class Report extends MY_Controller {
 			$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + 9, $row + 1 )->getFill ()->applyFromArray ( $fill );
 			$objWorksheet->getColumnDimensionByColumn ( $col + 4 + $xi + 9 )->setWidth ( 50 );
 			
-			$xi += 10;
+			$xi += $xcol + 1;
 		endfor
 		;
 		
@@ -1842,7 +1844,7 @@ class Report extends MY_Controller {
 		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row )->getAlignment ()->setHorizontal ( PHPExcel_Style_Alignment::HORIZONTAL_CENTER )->setVertical ( PHPExcel_Style_Alignment::VERTICAL_CENTER );
 		$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi, $row )->getFill ()->applyFromArray ( $fill );
 		
-		for($j = 0; $j < 9; $j ++) {
+		for($j = 0; $j < $xcol; $j ++) {
 			$objWorksheet->getStyleByColumnAndRow ( $col + 4 + $xi + $j, $row )->applyFromArray ( $border );
 		}
 		
@@ -1903,7 +1905,7 @@ class Report extends MY_Controller {
 		$col = $col;
 		$row += 2;
 		
-		$cc = 3 + ((($end + 1) - $start) * 10) + 9;
+		$cc = 3 + ((($end + 1) - $start) * ($xcol + 1)) + $xcol;
 		
 		$department = array (
 				'KAP TSFR',
@@ -2102,8 +2104,8 @@ class Report extends MY_Controller {
 						$description .= $cdescription." ";
 					if ($li > 0)
 						$description .= $ldescription." ";
-					if ($tk > 0)
-						$description .= $tkdescription." ";
+					//if ($tk > 0)
+						//$description .= $tkdescription." ";
 					
 					//if ($description)
 						//$description = substr($description,0,(strlen($description) -1));

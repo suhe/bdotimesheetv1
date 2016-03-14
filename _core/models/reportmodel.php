@@ -53,6 +53,7 @@ class reportModel extends CI_Model {
 		ifnull(sum(a.hour),0) hour, ifnull(sum(a.overtime),0) overtime
 		from timesheet a
 		where a.employee_id = '" . $data ['employee_id'] . "'
+		substr(a.EmployeeID,1,1) NOT IN ('8','9') 		
 		and timesheet_approval= 2
 		and a.timesheetdate >= STR_TO_DATE('" . $data ['date_from'] . "', '%d/%m/%Y')
 		and a.timesheetdate <= STR_TO_DATE('" . $data ['date_to'] . "', '%d/%m/%Y')
@@ -123,7 +124,7 @@ class reportModel extends CI_Model {
 				DATE_FORMAT(EmployeeHireDate,'%d %M %Y') as EmployeeHireDate
 				from employee e
 				inner join sys_user u on u.employee_id = e.employee_id
-				where u.user_active = 1 ";
+				where u.user_active = 1  substr(e.EmployeeID,1,1) NOT IN ('8','9') ";
 		if ($department_id)
 			$sql .= " and e.department_id = " . ($department_id ? $department_id : 0) . " ";
 		
@@ -285,10 +286,10 @@ class reportModel extends CI_Model {
                           ifnull(sum(a.hour),0) hour, ifnull(sum(a.overtime),0) overtime,
                           '' approval, y.employeenickname approval
                         from timesheet a
-            left join sys_user on a.employee_id = sys_user.employee_id
-            left join project c on a.project_id = c.project_id
-            inner join employee b on a.employee_id = b.employee_id
-            inner join employee y on b.approval_id = y.employee_id
+			            left join sys_user on a.employee_id = sys_user.employee_id
+			            left join project c on a.project_id = c.project_id
+			            inner join employee b on a.employee_id = b.employee_id
+			            inner join employee y on b.approval_id = y.employee_id
                         where timesheet_approval=2
                         and sys_user.user_active=1
                         and a.timesheetdate >= STR_TO_DATE('" . $data ['date_from'] . "', '%d-%m-%Y')
@@ -307,10 +308,10 @@ class reportModel extends CI_Model {
                           ifnull(sum(a.hour),0) hour, ifnull(sum(a.overtime),0) overtime,
                           '' approval, y.employeenickname approval
                         from timesheet a
-            left join sys_user on a.employee_id = sys_user.employee_id
-            left join project c on a.project_id = c.project_id
-            inner join employee b on a.employee_id = b.employee_id
-            inner join employee y on b.approval_id = y.employee_id
+			            left join sys_user on a.employee_id = sys_user.employee_id
+			            left join project c on a.project_id = c.project_id
+			            inner join employee b on a.employee_id = b.employee_id
+			            inner join employee y on b.approval_id = y.employee_id
                         where timesheet_approval=1 
                         and sys_user.user_active=1
                         and a.timesheetdate >= STR_TO_DATE('" . $data ['date_from'] . "', '%d-%m-%Y')
@@ -548,6 +549,7 @@ class reportModel extends CI_Model {
                 inner join sys_user su ON su.employee_id=c.employee_id
                 inner join department d on d.department_id = c.department_id
                 where su.user_active=1
+				substr(c.EmployeeID,1,1) NOT IN ('8','9') 
                 and c.employee_id <> 914
                 and c.employee_id <> 9996
                 and d.department_id<>8
@@ -558,13 +560,13 @@ class reportModel extends CI_Model {
                 and d.department_id<>22
                 and d.department_id<>120
                 and d.department_id<>129
-		and d.department_id<>134
-		and d.department_id<>777
+				and d.department_id<>134
+				and d.department_id<>777
                 ";
 		if (($option))
 			$option == 'KAP' ? $sql .= " and d.department_id<>7 and d.department_id<>18 " : "";
-		$option == 'BKI' ? $sql .= " and d.department_id=7 " : "";
-		$option == 'BO' ? $sql .= " and d.department_id=18" : "";
+			$option == 'BKI' ? $sql .= " and d.department_id=7 " : "";
+			$option == 'BO' ? $sql .= " and d.department_id=18" : "";
 		
 		$sql .= " group by c.employeeid
                 order by CONCAT(employeefirstname,employeemiddlename,employeelastname) ASC ";
@@ -966,9 +968,12 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 	/* ------------------------------------------------------------------------------------- */
 	public function getUserEmployee() {
 		$sql = "select employee_id, employeefirstname, employeemiddlename, employeelastname ,department_id
-				from employee a order by  employeefirstname, employeemiddlename, employeelastname ";
+				from employee a 
+				where substr(a.EmployeeID,1,1) NOT IN ('8','9') 
+				order by  employeefirstname, employeemiddlename, employeelastname ";
 		return $this->rst2Array ( $sql );
 	}
+	
 	public function getPartner() {
 		$sql = "select a.employee_id, employeefirstname, employeemiddlename, employeelastname 
 				from employee a
@@ -1131,15 +1136,15 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 		CONCAT(employeefirstname,' ',employeemiddlename,' ',employeelastname) AS employeename,employeetitle
 		from employee e
 		inner join sys_user su on su.employee_id=e.employee_id
-		where su.user_active = 1
+		where su.user_active = 1 and substr(e.EmployeeID,1,1) NOT IN ('8','9') 
 		and e.department_id NOT IN (9996,8,10,19,20,21,22,120,129,134)
 		";
-		$department_id == 'KAP TSFR' ? $sql .= " and e.department_id NOT IN (7,18) " : "";
+		$department_id == 'KAP TSFR' ? $sql .= " and e.department_id NOT IN (7,18,777) " : "";
 		$department_id == 'PT BDO KONSULTAN INDONESIA' ? $sql .= " and e.department_id IN (7) " : "";
 		$department_id == 'PT BDO Konsultan Indonesia Outsource' ? $sql .= " and e.department_id IN (777) " : "";
 		$department_id == 'PT BDO MANAJEMEN INDONESIA' ? $sql .= " and e.department_id IN (18) " : "";
 		
-		$sql .= " order by CONCAT(employeefirstname,' ',employeemiddlename,' ',employeelastname) ASC LIMIT 300";
+		$sql .= " order by CONCAT(employeefirstname,' ',employeemiddlename,' ',employeelastname) ASC LIMIT 350";
 		return $this->rst2Array ( $sql );
 	}
 	

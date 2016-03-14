@@ -97,7 +97,7 @@
 <table class="grid" style="font-size:10px">
 <thead>
 <tr>
-  <th class="table-head" colspan="<?=4+($x*9) +9?>" >  Absent by Periode</th>
+  <th class="table-head" colspan="<?=4 + ($x * 9) + 9?>" >  Absent by Periode</th>
 </tr>
 <tr>
 	<th rowspan="2">No</th>
@@ -157,7 +157,7 @@
 <tbody>
     <?=$content_report?>
 <tr>
-	<td colspan="<?=4+($x*9)+9?>"><i>printed date <?=date("d M Y H:i:s");  ?></i></td>
+	<td colspan="<?=4 + ($x * 9) + 9?>"><i>printed date <?=date("d M Y H:i:s");  ?></i></td>
 </tr>
 
 </tbody>
