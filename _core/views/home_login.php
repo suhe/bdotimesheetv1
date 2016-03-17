@@ -69,7 +69,14 @@
                     
 </div>
                     
-                    <div class="promotion"><a class="repliconMobile" href="#" alt="Replicon Mobile"></a></div>
+                    <div class="promotion">
+						<table width="135" border="0" cellpadding="2" cellspacing="0" title="Click to Verify - This site chose GeoTrust SSL for secure e-commerce and confidential communications.">
+						<tr>
+						<td width="135" align="center" valign="top"><script type="text/javascript" src="https://seal.geotrust.com/getgeotrustsslseal?host_name=timesheet.bdoindonesia.com&amp;size=M&amp;lang=en"></script><br />
+						<a href="http://www.geotrust.com/ssl/" target="_blank"  style="color:#000000; text-decoration:none; font:bold 7px verdana,sans-serif; letter-spacing:.5px; text-align:center; margin:0px; padding:0px;"></a></td>
+						</tr>
+						</table>
+						<a class="repliconMobile" href="#" alt="Timesheet BDO Indonesia"></a></div>
                         <div class="sweeper"></div>
                     </div>
             </div>

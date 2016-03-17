@@ -53,7 +53,7 @@ class reportModel extends CI_Model {
 		ifnull(sum(a.hour),0) hour, ifnull(sum(a.overtime),0) overtime
 		from timesheet a
 		where a.employee_id = '" . $data ['employee_id'] . "'
-		substr(a.EmployeeID,1,1) NOT IN ('8','9') 		
+		AND a.department_id NOT IN(777)		
 		and timesheet_approval= 2
 		and a.timesheetdate >= STR_TO_DATE('" . $data ['date_from'] . "', '%d/%m/%Y')
 		and a.timesheetdate <= STR_TO_DATE('" . $data ['date_to'] . "', '%d/%m/%Y')
@@ -124,7 +124,7 @@ class reportModel extends CI_Model {
 				DATE_FORMAT(EmployeeHireDate,'%d %M %Y') as EmployeeHireDate
 				from employee e
 				inner join sys_user u on u.employee_id = e.employee_id
-				where u.user_active = 1  substr(e.EmployeeID,1,1) NOT IN ('8','9') ";
+				where u.user_active = 1  and a.department_id NOT IN(777) ";
 		if ($department_id)
 			$sql .= " and e.department_id = " . ($department_id ? $department_id : 0) . " ";
 		
@@ -549,7 +549,7 @@ class reportModel extends CI_Model {
                 inner join sys_user su ON su.employee_id=c.employee_id
                 inner join department d on d.department_id = c.department_id
                 where su.user_active=1
-				substr(c.EmployeeID,1,1) NOT IN ('8','9') 
+				and c.department_id NOT IN(777) 
                 and c.employee_id <> 914
                 and c.employee_id <> 9996
                 and d.department_id<>8
@@ -969,7 +969,7 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 	public function getUserEmployee() {
 		$sql = "select employee_id, employeefirstname, employeemiddlename, employeelastname ,department_id
 				from employee a 
-				where substr(a.EmployeeID,1,1) NOT IN ('8','9') 
+				where a.department_id NOT IN(777) 
 				order by  employeefirstname, employeemiddlename, employeelastname ";
 		return $this->rst2Array ( $sql );
 	}
@@ -1136,7 +1136,7 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 		CONCAT(employeefirstname,' ',employeemiddlename,' ',employeelastname) AS employeename,employeetitle
 		from employee e
 		inner join sys_user su on su.employee_id=e.employee_id
-		where su.user_active = 1 and substr(e.EmployeeID,1,1) NOT IN ('8','9') 
+		where su.user_active = 1
 		and e.department_id NOT IN (9996,8,10,19,20,21,22,120,129,134)
 		";
 		$department_id == 'KAP TSFR' ? $sql .= " and e.department_id NOT IN (7,18,777) " : "";

@@ -64,22 +64,22 @@ if ( count( $approval_data ) > 0 ) {
 
 		<tr>
 			<td class="label">N.I.K: </td>
-			<td><input type="text"  class="inputtext mandatory" maxlength="5" id="employeeid"  name="employeeid" value="<?=$form['employeeid'] ?>" style="width:50px" /> *Required</td>
+			<td><input type="text"  class="inputtext mandatory" maxlength="5" id="employeeid"  name="employeeid" value="<?=$form['employeeid'] ?>" style="width:50px" /> <span style="color:red">* Required </span></td>
 		</td>
         
         <tr>
 			<td class="label">Hire Date: </td>
-			<td><input type="text"  class="inputtext date"  id="hiredate" name="hiredate" value="<?=$form['employeehiredate']?>" size="60" style='width:75px;' />  Required</td>
+			<td><input type="text"  class="inputtext date"  id="hiredate" name="hiredate" value="<?=$form['employeehiredate']?>" size="60" style='width:75px;' />  <span style="color:red">* Required </span></td>
 		</td>
         
         <tr>
 			<td class="label">Status: </td>
-			<td><?=form_dropdown('status',config_item('employee_status'),$form['employeestatus']);?> Required</td>
+			<td><?=form_dropdown('status',config_item('employee_status'),$form['employeestatus']);?> <span style="color:red">* Required </span></td>
 		</td>
 
 		<tr>
 			<td class="label">First Name : </td>
-			<td><input type="text"  class="inputtext mandatory" id="employeefirstname"  name="employeefirstname" value="<?=$form['employeefirstname'] ?>" size="40" />  Required</td>
+			<td><input type="text"  class="inputtext mandatory" id="employeefirstname"  name="employeefirstname" value="<?=$form['employeefirstname'] ?>" size="40" />  <span style="color:red">* Required </span></td>
 		</td>
 
 		<tr>
@@ -94,7 +94,7 @@ if ( count( $approval_data ) > 0 ) {
 
 		<tr>
 			<td class="label">Nick Name : </td>
-			<td><input type="text"  class="inputtext" id="employeenickname" name="employeenickname" value="<?=$form['employeenickname'] ?>" size="40" /></td>
+			<td><input type="text"  class="inputtext" id="employeenickname" name="employeenickname" value="<?=$form['employeenickname'] ?>" size="40" /> <span style="color:red">* Required </span></td>
 		</td>
 
 		<tr>
