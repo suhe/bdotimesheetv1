@@ -139,7 +139,7 @@ class timesheetModel extends CI_Model {
 			select a.timesheet_status_id,a.week, a.year, a.drequest,
 				a.dapproval,
 				'' approval, '' requestor, 
-				y.employeenickname approval, x.employeenickname requestor,
+				y.employeenickname approval, x.employeefirstname requestor,
 				a.timesheet_approval
 			from timesheet_status a
 			inner join employee x on a.employee_id = x.employee_id
@@ -311,7 +311,7 @@ class timesheetModel extends CI_Model {
 				else a.totalhour
 				end totalhour, 
 				d.project, d.project_no, 
-				e.client_name, b.employeenickname, c.week, c.year, c.hour,c.overtime,  c.cost,c.notes, 
+				e.client_name, b.employeefirstname as employeenickname, c.week, c.year, c.hour,c.overtime,  c.cost,c.notes, 
 				f.job_no, f.job
 			FROM timesheet c
 			inner join employee b on b.employee_id = c.employee_id
