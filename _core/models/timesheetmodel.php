@@ -519,7 +519,7 @@ class timesheetModel extends CI_Model {
 					'$form[job_id]','$client_name_descripiton', '".$note."', '$timesheetdate', $form[hour], $form[overtime],  $form[cost], $form[transport_type],
 					'".date('Y-m-d H:i:s')."','".$this->session->userdata('employee_id')."')"; 
 			
-			$is_leave = false;
+			/*$is_leave = false;
 			$leave_type = 0;
 			
 			/**
@@ -528,7 +528,7 @@ class timesheetModel extends CI_Model {
 			 * 3 = Tambahan
 			 * 4 = Khusus (Melahirkan)
 			 * 5 = Izin CUti
-			 */
+			 
 			
 			if($form['job_id'] == 500) {
 				$is_leave = true;
@@ -585,7 +585,7 @@ class timesheetModel extends CI_Model {
 					'leave_log_approval_name' => '',	
 				);
 				$this->db->insert('leave_log',$log);
-			}
+			} */
 			
 		}
 		else {
@@ -607,7 +607,7 @@ class timesheetModel extends CI_Model {
 				where timesheetid	= $form[id]";
 			
 			//remove if the same date & employee
-			$this->db->where('leave_date_from',$timesheetdate);
+			/*$this->db->where('leave_date_from',$timesheetdate);
 			$this->db->where('leave_date_to',$timesheetdate);
 			$this->db->where('employee_id',$this->session->userdata('employee_id'));
 			$this->db->delete('leaves');
@@ -656,7 +656,7 @@ class timesheetModel extends CI_Model {
 				);
 				$id = $this->db->insert_id('leaves',$data);
 			
-				//save log
+				/*save log
 				$log = array (
 						'leave_id' => $id,
 						'leave_log_date' => date('Y-m-d H:i:s'),
@@ -666,12 +666,12 @@ class timesheetModel extends CI_Model {
 						'leave_log_approval_id' => '',
 						'leave_log_approval_name' => '',
 				);
-				$this->db->insert('leave_log',$log);
-			}
+				$this->db->insert('leave_log',$log);**/
+			//}
 			
 		}
 		
-		//updat timesheet
+		
 		$this->db->query($sql);		
 		
 		if ( $form['id'] === '0' ) {
@@ -837,7 +837,7 @@ class timesheetModel extends CI_Model {
 						where timesheetid = ".$_POST['return'][$k]; 
 					$this->db->query($sql);		
 					
-					$tm = $this->getTimesheetById($_POST['return'][$k]);
+					/*$tm = $this->getTimesheetById($_POST['return'][$k]);
 					if($tm) {
 						$eval["leave_status"] = 0;
 						$this->db->where('leave_source',1);
@@ -846,13 +846,13 @@ class timesheetModel extends CI_Model {
 						$this->db->where('leave_date_to',$tm["timesheetdate"]);
 						$update = $this->db->update('leaves',$eval);
 						
-						if($update) {
+						/*if($update) {
 						//calculate employee leave
 							$sum = $this->sumEmployeeLeave($tm["employee_id"]);
 							$balance_total = $sum["balance"];
 							$leave_total = $sum["leave"];
 								
-							/** Update Employee Total **/
+							/** Update Employee Total 
 							$eval = array(
 									'EmployeeLeaveTotal' => $balance_total,
 									'EmployeeLeaveUse' => $leave_total
@@ -861,7 +861,7 @@ class timesheetModel extends CI_Model {
 							$this->db->update('employee',$eval);
 						}
 						
-					}
+					}*/
 					
 				}
 			}

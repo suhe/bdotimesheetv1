@@ -1230,7 +1230,7 @@ class projectModel extends CI_Model {
 	
 	//  getEmployee
 	/*-------------------------------------------------------------------------------------*/
-	public  function etOutsourceLis($project_id=null ) {
+	public function getOutsourceList($project_id = null ) {
 	
 	
 		$sql = "
