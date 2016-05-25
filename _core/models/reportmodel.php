@@ -65,7 +65,7 @@ class reportModel extends CI_Model {
 	/* ------------------------------------------------------------------------------------- */
 	public function getReportEmployeeProject($employee_id, $date) {
 		$sql = "select c.client_name, p.project_no, j.job_no, j.job,t.hour,t.overtime,(t.hour - t.overtime) as work_hour,t.cost,
-		ea.employeefirstname as approval,IF(t.transport_type<3,'DK','LK') as type
+		ea.employeefirstname as approval,IF(t.transport_type<3,'DK','LK') as type,DATE_FORMAT(ts.dapproval,'%d/%m/%Y %H:%i:%s') dapproval
 		from timesheet t
 		inner join project p on p.project_id = t.project_id
 		inner join client c on c.client_id= p.client_id
@@ -967,10 +967,11 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 	// getUserEmployee
 	/* ------------------------------------------------------------------------------------- */
 	public function getUserEmployee() {
-		$sql = "select employee_id, employeefirstname, employeemiddlename, employeelastname ,department_id
+		$sql = "select a.employee_id, a.employeefirstname, a.employeemiddlename, a.employeelastname ,a.department_id
 				from employee a 
-				where a.department_id NOT IN(777) 
-				order by  employeefirstname, employeemiddlename, employeelastname ";
+				inner join sys_user su on su.employee_id = a.employee_id
+				where a.department_id NOT IN(777) and user_active = 1
+				order by  a.employeefirstname, a.employeemiddlename, a.employeelastname ";
 		return $this->rst2Array ( $sql );
 	}
 	
@@ -1077,16 +1078,15 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 				order by date";
 		return $this->rst2Array ( $sql );
 	}
+	
 	public function getEmployeeWeekDetails($employee_id, $week, $year) {
 		$sql = "
-			SELECT DATE_FORMAT(timesheetdate,'%d/%m/%Y') as timesheetdate,t.employee_id,t.week,j.`JOBTYPE`,transport_type,t.hour,t.job_id,t.overtime
+			SELECT DATE_FORMAT(timesheetdate,'%d/%m/%Y') as timesheetdate,timesheetdate as tdate,t.employee_id,t.week,j.`JOBTYPE`,transport_type,t.hour,t.job_id,t.overtime
 			FROM timesheet t
 			INNER JOIN job j ON j.job_id = t.job_id
 			WHERE timesheet_approval = 2  
 			AND employee_id = $employee_id
 			AND WEEK = $week
-			
-			
 		";
 		
 		if (($week == 52) || ($week == 53))
@@ -1098,6 +1098,20 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 		
 		return $this->rst2Array ( $sql );
 	}
+	
+	public function getEmployeeTimesheetHoliday($employee_id,$timesheetdate,$job_id) {
+		$sql = "
+			SELECT transport_type,hour
+			FROM timesheet t
+			WHERE timesheet_approval = 2
+			AND employee_id = $employee_id
+			AND timesheetdate = '".$timesheetdate."'
+			AND job_id <> ".$job_id."
+			ORDER BY t.hour DESC
+		";
+		return $this->rst2Array ( $sql ,10);
+	}
+	
 	public function getEmployeeTimeSheetDate($employee_id, $timesheetdate) {
 		$sql = "
 			SELECT DATE_FORMAT(timesheetdate,'%d/%m/%Y') as timesheetdate,t.employee_id,t.week,j.`JOBTYPE`,transport_type,t.hour,t.job_id,t.overtime

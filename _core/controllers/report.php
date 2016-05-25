@@ -80,7 +80,7 @@ class Report extends MY_Controller {
 					$this->data ['row'] .= "     		
 					<tr $class >
 						<td>$i</td>
-						<td colspan=10><strong>" . $v ['date'] . " - " . $v ['day_name'] . "</strong></td>
+						<td colspan=11><strong>" . $v ['date'] . " - " . $v ['day_name'] . "</strong></td>
 					</tr>";
 					
 					$rows_project = $this->reportModel->getReportEmployeeProject ( $this->data ['form'] ['employee_id'], $v ['date'] );
@@ -104,6 +104,7 @@ class Report extends MY_Controller {
 							<td class=currency>" . $row ['overtime'] . "</td>
 							<td class=currency>" . number_format ( $row ['cost'], 0 ) . "</td>
 							<td>" . $row ['approval'] . "</td>
+							<td>" . $row ['dapproval'] . "</td>		
 						</tr>";
 						$subtotal_hour += $row ['hour'];
 						$subtotal_work_hour += $row ['work_hour'];
@@ -119,7 +120,7 @@ class Report extends MY_Controller {
 						<td class=currency><b>" . $subtotal_work_hour . "</b></td>
 						<td class=currency><b>" . $subtotal_overtime . "</b></td>
 						<td class=currency><b>" . number_format ( $subtotal_cost, 0 ) . "</b></td> 
-						<td></td>
+						<td colspan='3'></td>
 					</tr>";
 					
 					// counter for grouping days
@@ -137,7 +138,7 @@ class Report extends MY_Controller {
 					<td class=currency><b>" . $grandtotal_work_hour . "</b></td>
 					<td class=currency><b>" . $grandtotal_overtime . "</b></td>
 					<td class=currency><b>" . number_format ( $grandtotal_cost, 0 ) . "</b></td> 
-					<td></td>
+					<td colspan='3'></td>
 				  </tr>";
 			}
 		} else {
@@ -1304,10 +1305,10 @@ class Report extends MY_Controller {
 		$this->data ['row'] = "";
 		if ($this->data ['form'] ['date_from']) :
 			$arr = array (
-					'wdate_from' => $this->data ['form'] ['date_from'],
-					'wdate_to' => $this->data ['form'] ['date_to'],
-					'wweek' => $this->data ['form'] ['week'],
-					'wweek2' => $this->data ['form'] ['week2'] 
+				'wdate_from' => $this->data ['form'] ['date_from'],
+				'wdate_to' => $this->data ['form'] ['date_to'],
+				'wweek' => $this->data ['form'] ['week'],
+				'wweek2' => $this->data ['form'] ['week2'] 
 			);
 			$this->session->set_userdata ( $arr );
 		endif;
@@ -1445,17 +1446,17 @@ class Report extends MY_Controller {
 						$lilk = 0;
 						$ot = 0;
 						$tk = 0;
-						$tk_mon = $days [0];
-						$tk_tue = $days [1];
-						$tk_wed = $days [2];
-						$tk_thu = $days [3];
-						$tk_fri = $days [4];
-						$tkdescription = "TK : ";
+						//$tk_mon = $days [0];
+						//$tk_tue = $days [1];
+						//$tk_wed = $days [2];
+						//$tk_thu = $days [3];
+						//$tk_fri = $days [4];
+						//$tkdescription = "TK : ";
 						
 						$rows = $this->reportModel->getEmployeeWeekDetails ( $v ['employee_id'], $week, $year );
 						
 						foreach ( $rows as $key => $row ) {
-							switch ($row ["timesheetdate"]) {
+							/*switch ($row ["timesheetdate"]) {
 								case $days [0] :
 									$tk_mon = "";
 									break;
@@ -1471,7 +1472,7 @@ class Report extends MY_Controller {
 								case $days [4] :
 									$tk_fri = "";
 									break;
-							}
+							}*/
 							
 							// $day_name = date ( "D", strtotime ( $row ['timesheetdate'] ) );
 							// Dalam Kota
@@ -1509,6 +1510,20 @@ class Report extends MY_Controller {
 							// count of libur
 							if ($row ["job_id"] == 499) {
 								$li += 8;
+								//patch libur
+								$not_holiday_row = $this->reportModel->getEmployeeTimesheetHoliday($row['employee_id'],$row['tdate'],$row['job_id']);
+								if($not_holiday_row) {
+									if ($not_holiday_row['transport_type'] < 3) {
+										$dk += 1;
+									}
+									
+									if ($not_holiday_row['transport_type'] == 3) {
+										$lk += 1;
+									}
+									
+									$li -=8;
+								}
+								//patch libur
 							}
 							
 							if ($row ["overtime"] > 0)
@@ -1524,10 +1539,10 @@ class Report extends MY_Controller {
 						$total_week = $dk + $lk + $s + $c + $li;
 						if ($total_week <= 5)
 							$tk = 5 - $total_week;
-						if ($tk < 1)
-							$tkdescription = "";
-						else
-							$tkdescription .= $tk_mon . " " . $tk_tue . " " . $tk_wed . " " . $tk_thu . " " . $tk_fri;
+						//if ($tk < 1)
+							//$tkdescription = "";
+						//else
+							//$tkdescription .= $tk_mon . " " . $tk_tue . " " . $tk_wed . " " . $tk_thu . " " . $tk_fri;
 						
 						$table .= '<td class="center">' . $dk . '</td>';
 						$table .= '<td class="center">' . $lk . '</td>';
@@ -2072,7 +2087,28 @@ class Report extends MY_Controller {
 						// count of libur
 						if ($val ["job_id"] == 499) {
 							$li += 8;
-							$ldescription .= $val ["timesheetdate"] . ", ";
+							$ldescription .= $val ["timesheetdate"];
+							
+							//patch libur
+							$not_holiday_row = $this->reportModel->getEmployeeTimesheetHoliday($val['employee_id'],$val['tdate'],$val['job_id']);
+							if($not_holiday_row) {
+								if ($not_holiday_row['transport_type'] < 3) {
+									$dk += 1;
+								}
+									
+								if ($not_holiday_row['transport_type'] == 3) {
+									$lk += 1;
+								}
+									
+								$li -=8;
+								
+								//description 
+								$ldescription .= "(Msk ".$not_holiday_row["hour"]." jam )" ;
+							}
+							//patch libur
+							
+							$ldescription .= ", ";
+							
 						}
 						
 						if ($val ["overtime"] > 0)
@@ -2102,8 +2138,9 @@ class Report extends MY_Controller {
 						$description .= $idescription." ";
 					if ($c > 0)
 						$description .= $cdescription." ";
-					if ($li > 0)
-						$description .= $ldescription." ";
+					//if ($li > 0)
+					$description .= $ldescription." ";
+					
 					//if ($tk > 0)
 						//$description .= $tkdescription." ";
 					

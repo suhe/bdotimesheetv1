@@ -89,7 +89,7 @@ if ( count( $employee_data ) > 0 ) {
 <table class="grid">
 <thead>
 <tr>
-  <th class="table-head" colspan="11">Employee Detail Report</th>
+  <th class="table-head" colspan="12">Employee Detail Report</th>
 </tr>
 <tr>
 	<th rowspan=2>No</th>
@@ -101,6 +101,7 @@ if ( count( $employee_data ) > 0 ) {
 	<th colspan=3><center>Hour</center></th>
 	<th rowspan=2>Cost</th>
 	<th rowspan=2>Approved by</th>
+	<th rowspan=2>Approved at</th>
 </tr>
 <tr>
 	<th>Total</th>
@@ -111,7 +112,7 @@ if ( count( $employee_data ) > 0 ) {
 	</thead>
 	<tbody>
    <?=$row ?>
-  <tr><td colspan=11><i>printed date <?=date("d M Y H:i:s");  ?></i>
+  <tr><td colspan=12><i>printed date <?=date("d M Y H:i:s");  ?></i>
 	</tbody>
 	</table>
 </div>
