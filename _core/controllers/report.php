@@ -1422,13 +1422,13 @@ class Report extends MY_Controller {
 							$year = $xyear + 1;
 						}
 						
-						$days = array (
+						/*$days = array (
 								0 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "1" ) ),
 								1 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "2" ) ),
 								2 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "3" ) ),
 								3 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "4" ) ),
 								4 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "5" ) ) 
-						);
+						);*/
 						
 						$timesheetdate = '';
 						$dk = 0;
@@ -1487,14 +1487,15 @@ class Report extends MY_Controller {
 									$lk += 1;
 							}
 							
-							// count of sakit / sick
+							// count of self study
 							if (($row ['job_id'] == 470)) {
 								$ss += $row ['hour'];
 							}
 							
 							// count of sakit / sick
 							if (($row ['job_id'] <= 3) && ($row ['hour'] >= 4)) {
-								$s += 8;
+								if ($timesheetdate != $row ['timesheetdate'])
+									$s += 8;
 							}
 							
 							// count of izin
@@ -1504,24 +1505,30 @@ class Report extends MY_Controller {
 							
 							// count of cuti
 							if (($row ["hour"] >= 4) and (($row ["job_id"] >= 4 and $row ["job_id"] <= 9) or $row ["job_id"] == 17 or ($row ["job_id"] >= 10 and $row ["job_id"] <= 12))) {
-								$c += 8;
+								if ($timesheetdate != $row ['timesheetdate'])
+									$c += 8;
 							}
+							
+							//terlambat izin
+							//if($row["hour"] >= 8 && )
 							
 							// count of libur
 							if ($row ["job_id"] == 499) {
-								$li += 8;
-								//patch libur
-								$not_holiday_row = $this->reportModel->getEmployeeTimesheetHoliday($row['employee_id'],$row['tdate'],$row['job_id']);
-								if($not_holiday_row) {
-									if ($not_holiday_row['transport_type'] < 3) {
-										$dk += 1;
+								if ($timesheetdate != $row ['timesheetdate']) {
+									$li += 8;
+									//patch libur
+									$not_holiday_row = $this->reportModel->getEmployeeTimesheetHoliday($row['employee_id'],$row['tdate'],$row['job_id']);
+									if($not_holiday_row) {
+										if ($not_holiday_row['transport_type'] < 3) {
+											$dk += 1;
+										}
+										
+										if ($not_holiday_row['transport_type'] == 3) {
+											$lk += 1;
+										}
+										
+										$li -=8;
 									}
-									
-									if ($not_holiday_row['transport_type'] == 3) {
-										$lk += 1;
-									}
-									
-									$li -=8;
 								}
 								//patch libur
 							}
@@ -1997,13 +2004,13 @@ class Report extends MY_Controller {
 						$year = $xyear + 1;
 					}
 					
-					$days = array (
+					/*$days = array (
 							0 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "1" ) ),
 							1 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "2" ) ),
 							2 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "3" ) ),
 							3 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "4" ) ),
 							4 => date ( "d/m/Y", strtotime ( $year . "W" . digit ( $week ) . "5" ) ),
-					);
+					);*/
 					
 					$timesheetdate = '';
 					$dk = 0;
@@ -2015,11 +2022,11 @@ class Report extends MY_Controller {
 					$li = 0;
 					$ot = 0;
 					$tk = 0;
-					$tk_mon = $days [0];
+					/**$tk_mon = $days [0];
 					$tk_tue = $days [1];
 					$tk_wed = $days [2];
 					$tk_thu = $days [3];
-					$tk_fri = $days [4];
+					$tk_fri = $days [4]; **/
 					$description = "";
 					$tkdescription = "TK :";
 					$ldescription = "Libur :";
@@ -2030,7 +2037,7 @@ class Report extends MY_Controller {
 					$timesheet = $this->reportModel->getEmployeeWeekDetails ( $v ['employee_id'], $week, $year );
 					
 					foreach ( $timesheet as $key => $val ) {
-						switch ($val ["timesheetdate"]) {
+						/*switch ($val ["timesheetdate"]) {
 							case $days [0] :
 								$tk_mon = "";
 								break;
@@ -2046,7 +2053,7 @@ class Report extends MY_Controller {
 							case $days [4] :
 								$tk_fri = "";
 								break;
-						}
+						}*/
 						
 						// Dalam Kota
 						if (($val ['transport_type'] < 3) && ($val ["JOBTYPE"] != "HRD")) {
@@ -2056,7 +2063,6 @@ class Report extends MY_Controller {
 						
 						// Luar Kota
 						if (($val ['transport_type'] == 3) && ($val ['JOBTYPE'] != 'HRD')) {
-							
 							if ($val ['timesheetdate'] != $timesheetdate)
 								$lk += 1;
 						}
@@ -2068,8 +2074,10 @@ class Report extends MY_Controller {
 						
 						// count of sakit / sick
 						if (($val ['job_id'] <= 3) && ($val ['hour'] >= 4)) {
-							$s += 8;
-							$sdescription .= $val ["timesheetdate"] . ", ";
+							if ($timesheetdate != $val ['timesheetdate']) {
+								$s += 8;
+								$sdescription .= $val ["timesheetdate"] . ", ";
+							}
 						}
 						
 						// count of izin
@@ -2080,34 +2088,38 @@ class Report extends MY_Controller {
 						
 						// count of cuti
 						if (($val ["hour"] >= 4) and (($val ["job_id"] >= 4 and $val ["job_id"] <= 9) or $val ["job_id"] == 17 or ($val ["job_id"] >= 10 and $val ["job_id"] <= 12))) {
-							$c += 8;
-							$cdescription .= $val ["timesheetdate"] . ", ";
+							if ($timesheetdate != $val ['timesheetdate']) {
+								$c += 8;
+								$cdescription .= $val ["timesheetdate"] . ", ";
+							}
 						}
 						
 						// count of libur
 						if ($val ["job_id"] == 499) {
-							$li += 8;
-							$ldescription .= $val ["timesheetdate"];
-							
-							//patch libur
-							$not_holiday_row = $this->reportModel->getEmployeeTimesheetHoliday($val['employee_id'],$val['tdate'],$val['job_id']);
-							if($not_holiday_row) {
-								if ($not_holiday_row['transport_type'] < 3) {
-									$dk += 1;
-								}
-									
-								if ($not_holiday_row['transport_type'] == 3) {
-									$lk += 1;
-								}
-									
-								$li -=8;
+							if ($timesheetdate != $val ['timesheetdate']) {
+								$li += 8;
+								$ldescription .= $val ["timesheetdate"];
 								
-								//description 
-								$ldescription .= "(Msk ".$not_holiday_row["hour"]." jam )" ;
+								//patch libur
+								$not_holiday_row = $this->reportModel->getEmployeeTimesheetHoliday($val['employee_id'],$val['tdate'],$val['job_id']);
+								if($not_holiday_row) {
+									if ($not_holiday_row['transport_type'] < 3) {
+										$dk += 1;
+									}
+										
+									if ($not_holiday_row['transport_type'] == 3) {
+										$lk += 1;
+									}
+										
+									$li -=8;
+									
+									//description 
+									$ldescription .= "(Msk ".$not_holiday_row["hour"]." jam )" ;
+								}
+								//patch libur
+								
+								$ldescription .= ", ";
 							}
-							//patch libur
-							
-							$ldescription .= ", ";
 							
 						}
 						
@@ -2125,11 +2137,11 @@ class Report extends MY_Controller {
 					$tk = 0;
 					if ($total_week < 5) {
 						$tk = 5 - $total_week;
-						$tkdescription .=$tk_mon ?  $tk_mon.", " : " ";
+						/*$tkdescription .=$tk_mon ?  $tk_mon.", " : " ";
 						$tkdescription .=$tk_tue ?  $tk_tue.", " : " ";
 						$tkdescription .=$tk_wed ?  $tk_wed.", " : " ";
 						$tkdescription .=$tk_thu ?  $tk_thu.", " : " ";
-						$tkdescription .=$tk_fri ?  $tk_fri.", " : " ";
+						$tkdescription .=$tk_fri ?  $tk_fri.", " : " ";*/
 					}
 					
 					if ($s > 0)
@@ -2139,7 +2151,7 @@ class Report extends MY_Controller {
 					if ($c > 0)
 						$description .= $cdescription." ";
 					//if ($li > 0)
-					$description .= $ldescription." ";
+					//$description .= $ldescription." ";
 					
 					//if ($tk > 0)
 						//$description .= $tkdescription." ";
@@ -2331,21 +2343,21 @@ class Report extends MY_Controller {
 					$total = $office + $intown + $outtown + $uknown;
 					
 					$this->data ['row'] .= "     		
-      		<tr $class >
-      				<td>$i</td>
-      				<td>$v[employeeid]</td>
-      				<td>$v[employeefirstname] $v[employeemiddlename] $v[employeelastname]</td>
-      				<td class='currency'>$office</td>
-					<td class='currency'>$off_cost</td>
-      				<td class='currency'>$intown</td>
-					<td class='currency'>$intown_cost</td>
-      				<td class='currency'>$outtown</td>
-					<td class='currency'>$outtown_cost</td>
-					<td class='currency'>$uknown</td>
-					<td class='currency'>$uknown_cost</td>
-					<td class='currency'>$total</td>
-					<td class='currency'>" . number_format ( $cost, "2" ) . "</td>
-      		</tr>";
+		      		<tr $class >
+		      				<td>$i</td>
+		      				<td>$v[employeeid]</td>
+		      				<td>$v[employeefirstname] $v[employeemiddlename] $v[employeelastname]</td>
+		      				<td class='currency'>$office</td>
+							<td class='currency'>$off_cost</td>
+		      				<td class='currency'>$intown</td>
+							<td class='currency'>$intown_cost</td>
+		      				<td class='currency'>$outtown</td>
+							<td class='currency'>$outtown_cost</td>
+							<td class='currency'>$uknown</td>
+							<td class='currency'>$uknown_cost</td>
+							<td class='currency'>$total</td>
+							<td class='currency'>" . number_format ( $cost, "2" ) . "</td>
+		      		</tr>";
 					$i ++;
 				}
 				

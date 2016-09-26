@@ -24,6 +24,6 @@
                                      'Senior HRD' => 'Senior HRD', 
                                      'Manager HRD'=>'Manager HRD');  
 	$config['employee_status'] = array('0'=>'Permanent','1'=>'Contract','2'=>'Outsource');								 
-	$config['date_start']  = '20/02/2016';
-	$config['date_end']    = '14/03/2016';
-    $config['month_payroll'] = 'Mar 2016';		
+	$config['date_start']  = '13/06/2016';
+	$config['date_end']    = '17/07/2016';
+    $config['month_payroll'] = 'Julys 2016';		

@@ -346,6 +346,9 @@ function getWeek(value, xdate, inst) {
 	$("#year").val(nYear);
 }
 
+function DisableSpecificDates() {
+}
+
 $(function () {
 	/** Update Timesheet
 	* Disabled date when leave is fill
@@ -404,7 +407,12 @@ $(function () {
 	$('#back').click( function (e) {
 		window.location.href ='<?=$back?>';
 	});
-	$('input.date').datepick({dateFormat:'dd/mm/yy', showWeeks:true, onClose: getWeek, firstDay: 1, minDate:new Date(2008,1,1)});
+	var array = ["04/07/2016","05/07/2016","06/07/2016","07/07/2016","08/07/2016"]
+	$('input.date').datepick({dateFormat:'dd/mm/yy', showWeeks:true, onClose: getWeek, firstDay: 1, minDate:new Date(2008,1,1),
+	beforeShowDay: function(date){
+        var string = jQuery.datepicker.formatDate('dd/mm/yy', date);
+        return [ array.indexOf(string) == -1 ]
+    }});
  	$('#hour').focus();
 	$('#project_id').change(function() {
 		var post = [{name:'ts', value: new Date().getTime()},

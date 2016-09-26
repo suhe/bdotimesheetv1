@@ -98,6 +98,18 @@ class timesheetModel extends CI_Model {
 		return $this->rst2Array($sql) ;
 	}
 	
+	//  getActiveEmployee
+	/*-------------------------------------------------------------------------------------*/
+	public  function getActiveEmployee() {
+		$sql = "select e.employee_id,e.approval_id
+				from employee e
+				inner join sys_user u on u.employee_id = e.employee_id
+				where u.user_active = 1  and e.department_id NOT IN(777,914,9996,8,10,19,20,21,22,120,129,134)
+				order by abs(e.employee_id) asc
+				";
+		return $this->rst2Array($sql) ;
+	}
+	
 
 
 	//  getProject
@@ -388,7 +400,7 @@ class timesheetModel extends CI_Model {
 			from project_job a 
 			inner join job b on a.job_id= b.job_id 
 			where a.project_id = '$project_id' 
-			and b.active = 1
+			and b.active = 1 and b.jobtype_id <> 541
 			order by b.job_no asc";
 		return $this->rst2Array($sql);
 	}
@@ -403,6 +415,18 @@ class timesheetModel extends CI_Model {
 				and a.employee_id='".$this->session->userdata('employee_id') ."' 
 				and a.week ='$week' and a.year='$year' ";
 		return $this->rst2Array($sql, 10);
+	}
+	
+	//  checkTimesheetWeek
+	/*-------------------------------------------------------------------------------------*/
+	public  function getTimesheetWeek($employee_id,$week, $year) {
+		$sql = "
+			select *
+			from timesheet_status a
+			where timesheet_approval is null 
+			and a.employee_id = ".$employee_id ."
+			and a.week = ".$week." and a.year = ".$year." ";
+		return $this->rst2Array($sql,10);
 	}
 	
 	//  checkTimesheetWeek
@@ -500,6 +524,15 @@ class timesheetModel extends CI_Model {
 			values ('". $week ."', '". $year ."','".$this->session->userdata('employee_id')."',".date('Y-m-d').",'".$this->session->userdata('employee_id')."')"; 
 		$this->db->query($sql);			
 		return  $this->db->insert_id();;
+	}
+	
+	//  insertTimesheetWeekly
+	/*-------------------------------------------------------------------------------------*/
+	public function setTimesheetWeek($employee_id,$week, $year,$drequest,$approval_id,$dapproval,$timesheet_approval,$notes)  {
+		$sql = "insert into timesheet_status (week, year, employee_id,drequest,approval_id,dapproval,timesheet_approval,notes,sysdate, sysuser)
+			values (". $week .",". $year .",".$employee_id.",'".$drequest."',".$approval_id.",'".$dapproval."',".$timesheet_approval.",'".$notes."',".date('Y-m-d').",".$employee_id.")"; 
+		$this->db->query($sql);			
+		return  $this->db->insert_id();
 	}
 
 	//  saveTimesheet

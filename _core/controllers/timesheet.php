@@ -702,5 +702,93 @@ class Timesheet extends MY_Controller{
 		
 		echo json_encode($result);
 	}
+	
+	public function idul_fitri() {
+		$date_holiday = array(
+			array (
+				'date' => '2016-07-04',
+				'week' => 27,
+				'year' => 2016,
+				'job_id' => 11,
+				'description' => 'Cuti Bersama Idul Fitri 1473H',
+			),
+			array (
+				'date' => '2016-07-05',
+				'week' => 27,
+				'year' => 2016,
+				'job_id' => 11,
+				'description' => 'Cuti Bersama Idul Fitri 1473H',
+			),
+			array (
+				'date' => '2016-07-06',
+				'week' => 27,
+				'year' => 2016,
+				'job_id' => 499,
+				'description' => 'Libur Idul Fitri 1473H',
+			),
+			array (
+				'date' => '2016-07-07',
+				'week' => 27,
+				'year' => 2016,
+				'job_id' => 499,
+				'description' => 'Libur Idul Fitri 1473H',
+			),
+			array (
+				'date' => '2016-07-08',
+				'week' => 27,
+				'year' => 2016,
+				'job_id' => 11,
+				'description' => 'Cuti Bersama Idul Fitri 1473H',
+			),
+			
+		);
+		
+		$users = $this->timesheetModel->getActiveEmployee();
+		foreach($users as $user_key => $user) {
+			//delete last save timesheet status
+			$this->db->where(array("employee_id" => $user["employee_id"],'week' => 27,'year' => 2016));
+			$this->db->delete("timesheet_status");
+				
+			foreach($date_holiday as $date_key => $var) {
+				//delete last save timesheet
+				$this->db->where(array("employee_id" => $user["employee_id"],'timesheetdate' => $var["date"]));
+				$this->db->delete("timesheet");
+				
+				$employee_week = $this->timesheetModel->getTimesheetWeek($user["employee_id"],$var['week'],$var['year']);
+				$timesheet_status_id = null;
+				if (count($employee_week) == 0){
+					$approval_id = $user["approval_id"] ? $user["approval_id"] : 0;
+					$timesheet_status_id = $this->timesheetModel->setTimesheetWeek($user['employee_id'],$var['week'], $var['year'],date("Y-m-d H:i:s"),$approval_id,date("Y-m-d H:i:s"),2,"Auto Approved");
+				} 
+				else {
+					$timesheet_status_id = $employee_week['timesheet_status_id'] ;
+				}
+				
+				//insert new save
+				$data = array(
+					'timesheet_status_id' => $timesheet_status_id,
+					'project_id' => 1 , // HRD Project
+					'employee_id' => $user["employee_id"],
+					'week' => $var["week"],
+					'year' => $var["year"],
+					'job_id' => $var["job_id"],
+					'client_name_description' => '',
+					'notes' => $var["description"],
+					'timesheetdate' => $var["date"],
+					'hour' => 8,
+					'overtime' => 0,
+					'cost' => 0,
+					'transport_type' => 1,
+					'sysdate' => date("Y-m-d H:i:s"),
+					'sysuser' => $user["employee_id"],
+					'timesheet_approval' => 2
+				);
+				
+				$this->db->insert("timesheet",$data);
+				
+			}
+		}
+		
+	}
     
 }	

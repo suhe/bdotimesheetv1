@@ -1,5 +1,5 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-
+date_default_timezone_set('Asia/Jakarta');
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -14,7 +14,7 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'http://timesheet.local/';
+$config['base_url']	= 'https://timesheet.bdoindonesia.com/';
 
 /*
 |--------------------------------------------------------------------------

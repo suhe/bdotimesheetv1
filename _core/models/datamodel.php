@@ -290,7 +290,7 @@ class dataModel extends CI_Model {
    		  $sql="insert into project_job ( project_id, job_id, sysdate, sysuser) 
    		         values (1, $id,'".date('Y-m-d H:i:s')."', '".$this->session->userdata('user_id')."')"; 
             $this->db->query($sql);		
-            echo $sql;   		         
+            //echo $sql;   		         
    		}
 		} 
 

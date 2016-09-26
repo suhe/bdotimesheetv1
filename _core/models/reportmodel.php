@@ -1094,7 +1094,7 @@ z.lookup_group = 'project_title' and z.lookup_code = '03' and y.project_id=a.pro
 		else
 			$sql .= " AND YEAR = " . $year . " ";
 		
-		$sql .= " ORDER BY timesheetdate ASC";
+		$sql .= " ORDER BY timesheetdate ASC,ABS(hour) DESC";
 		
 		return $this->rst2Array ( $sql );
 	}
